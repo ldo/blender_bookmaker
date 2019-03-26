@@ -13,7 +13,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 4, 0),
+        "version" : (0, 5, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -683,7 +683,8 @@ class Bookmaker(bpy.types.Operator) :
                 height = self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10)
                 rotate = (2 * random.random() - 1) * self.rotate_var
                 rotation_displacement = height * math.sin(rotate)
-                displacement_delta = rotation_displacement - prev_rotation_displacement
+                x_disp_delta = rotation_displacement - prev_rotation_displacement
+                z_disp_delta = max(width * math.sin(rotate), 0)
                 vertices = []
                 bounds = book_mesh["bounds"]
                 for i in range(len(book_mesh["vertices"])) :
@@ -712,7 +713,7 @@ class Bookmaker(bpy.types.Operator) :
                     (
                         Matrix.Translation
                           (
-                            Vector(((0, - displacement_delta)[displacement_delta < 0], 0, 0))
+                            Vector(((0, - x_disp_delta)[x_disp_delta < 0], 0, z_disp_delta))
                           )
                     *
                         Matrix.Translation(pos)
@@ -727,7 +728,7 @@ class Bookmaker(bpy.types.Operator) :
                     this_vertex.select = True # usual Blender default for newly-created object
                 #end for
                 # TBD materials
-                pos += Vector((width + (0, - displacement_delta)[displacement_delta < 0], 0, 0))
+                pos += Vector((width + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
                 prev_rotation_displacement = rotation_displacement
             #end for
             # all done
