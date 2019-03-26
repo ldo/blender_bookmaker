@@ -531,6 +531,7 @@ book_mesh["bounds"] = \
         (min(v[1] for v in book_mesh["vertices"]), max(v[1] for v in book_mesh["vertices"])),
         (min(v[2] for v in book_mesh["vertices"]), max(v[2] for v in book_mesh["vertices"])),
     )
+print("book_mesh[\"bounds\"] = %s" % repr(book_mesh["bounds"])) # debug
 book_mesh["middle_vertices"] = \
     (
         set(range(len(book_mesh["vertices"])))
