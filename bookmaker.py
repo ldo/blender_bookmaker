@@ -13,7 +13,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 5, 0),
+        "version" : (0, 5, 1),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -678,9 +678,9 @@ class Bookmaker(bpy.types.Operator) :
             random.seed(self.ranseed)
             prev_rotation_displacement = 0
             for j in range(self.count) :
-                width = self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10)
-                depth = self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10)
-                height = self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10)
+                width = max(self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10), dimensions_min[0])
+                depth = max(self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10), dimensions_min[1])
+                height = max(self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10), dimensions_min[2])
                 rotate = (2 * random.random() - 1) * self.rotate_var
                 rotation_displacement = height * math.sin(rotate)
                 x_disp_delta = rotation_displacement - prev_rotation_displacement
