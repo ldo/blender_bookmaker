@@ -626,6 +626,7 @@ class Bookmaker(bpy.types.Operator) :
             context.scene.objects.link(new_obj)
             bpy.ops.object.select_all(action = "DESELECT")
             bpy.data.objects[new_obj_name].select = True
+            context.scene.objects.active = new_obj
             for this_vertex in new_mesh.vertices :
                 this_vertex.select = True # usual Blender default for newly-created object
             #end for
