@@ -11,7 +11,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 1, 0),
+        "version" : (0, 2, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -552,7 +552,32 @@ book_mesh["bottom_vertices"] = \
 # Mainline
 #-
 
-dimension_min = 0.001
+dimensions_min = \
+    (
+            max
+              (
+                v[0] - book_mesh["bounds"][0][0]
+                for i in range(len(book_mesh["vertices"]))
+                for v in (book_mesh["vertices"][i],)
+                if i in book_mesh["left_vertices"]
+              )
+        +
+            max
+              (
+                book_mesh["bounds"][0][1] - v[0]
+                for i in range(len(book_mesh["vertices"]))
+                for v in (book_mesh["vertices"][i],)
+                if i in book_mesh["right_vertices"]
+              ),
+        max
+          (
+            v[1] - book_mesh["bounds"][1][0]
+            for i in range(len(book_mesh["vertices"]))
+            for v in (book_mesh["vertices"][i],)
+            if i in book_mesh["front_vertices"]
+          ),
+        0.001
+    )
 dimension_defaults = tuple(v[1] - v[0] for v in book_mesh["bounds"])
 
 class Bookmaker(bpy.types.Operator) :
@@ -572,21 +597,21 @@ class Bookmaker(bpy.types.Operator) :
       (
         name = "width",
         description = "base width of one book",
-        min = dimension_min,
+        min = dimensions_min[0],
         default = dimension_defaults[0],
       )
     depth = bpy.props.FloatProperty \
       (
         name = "depth",
         description = "base depth of one book",
-        min = dimension_min,
+        min = dimensions_min[1],
         default = dimension_defaults[1],
       )
     height = bpy.props.FloatProperty \
       (
         name = "height",
         description = "base height of one book",
-        min = dimension_min,
+        min = dimensions_min[2],
         default = dimension_defaults[2],
       )
 
