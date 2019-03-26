@@ -3,15 +3,17 @@
 #-
 
 import math
+import random
 import bpy
 from mathutils import \
-    Matrix
+    Matrix, \
+    Vector
 
 bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 2, 0),
+        "version" : (0, 3, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -600,12 +602,28 @@ class Bookmaker(bpy.types.Operator) :
         min = dimensions_min[0],
         default = dimension_defaults[0],
       )
+    width_var = bpy.props.FloatProperty \
+      (
+        name = "width_var",
+        description = "variation in width (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
+      )
     depth = bpy.props.FloatProperty \
       (
         name = "depth",
         description = "base depth of one book",
         min = dimensions_min[1],
         default = dimension_defaults[1],
+      )
+    depth_var = bpy.props.FloatProperty \
+      (
+        name = "depth_var",
+        description = "variation in depth (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
       )
     height = bpy.props.FloatProperty \
       (
@@ -614,52 +632,77 @@ class Bookmaker(bpy.types.Operator) :
         min = dimensions_min[2],
         default = dimension_defaults[2],
       )
+    height_var = bpy.props.FloatProperty \
+      (
+        name = "height_var",
+        description = "variation in height (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
+      )
+    ranseed = bpy.props.IntProperty \
+      (
+        name = "ranseed",
+        description = "Pseudorandom seed",
+        min = 0,
+        default = 0,
+      )
 
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count")
         the_col.prop(self, "width")
+        the_col.prop(self, "width_var")
         the_col.prop(self, "depth")
+        the_col.prop(self, "depth_var")
         the_col.prop(self, "height")
+        the_col.prop(self, "height_var")
+        the_col.prop(self, "ranseed")
     #end draw
 
     def action_common(self, context, redoing) :
         try :
-            pos = context.scene.cursor_location
-            vertices = []
-            bounds = book_mesh["bounds"]
-            for i in range(len(book_mesh["vertices"])) :
-                coords = list(book_mesh["vertices"][i])
-                coords[0] -= bounds[0][0]
-                coords[1] -= bounds[1][0]
-                coords[2] -= bounds[2][0]
-                if i in book_mesh["middle_vertices"] :
-                    coords[0] *= self.width / (bounds[0][1] - bounds[0][0])
-                elif i in book_mesh["right_vertices"] :
-                    coords[0] += self.width - (bounds[0][1] - bounds[0][0])
-                #end if
-                if i in book_mesh["back_vertices"] :
-                    coords[1] += self.depth - (bounds[1][1] - bounds[1][0])
-                #end if
-                if i in book_mesh["top_vertices"] :
-                    coords[2] += self.height - (bounds[2][1] - bounds[2][0])
-                #end if
-                vertices.append(coords)
+            pos = Vector(context.scene.cursor_location)
+            random.seed(self.ranseed)
+            for j in range(self.count) :
+                width = self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10)
+                depth = self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10)
+                height = self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10)
+                vertices = []
+                bounds = book_mesh["bounds"]
+                for i in range(len(book_mesh["vertices"])) :
+                    coords = list(book_mesh["vertices"][i])
+                    coords[0] -= bounds[0][0]
+                    coords[1] -= bounds[1][0]
+                    coords[2] -= bounds[2][0]
+                    if i in book_mesh["middle_vertices"] :
+                        coords[0] *= width / (bounds[0][1] - bounds[0][0])
+                    elif i in book_mesh["right_vertices"] :
+                        coords[0] += width - (bounds[0][1] - bounds[0][0])
+                    #end if
+                    if i in book_mesh["back_vertices"] :
+                        coords[1] += depth - (bounds[1][1] - bounds[1][0])
+                    #end if
+                    if i in book_mesh["top_vertices"] :
+                        coords[2] += height - (bounds[2][1] - bounds[2][0])
+                    #end if
+                    vertices.append(coords)
+                #end for
+                new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
+                new_mesh = bpy.data.meshes.new(new_mesh_name)
+                new_mesh.from_pydata(vertices, [], book_mesh["faces"])
+                new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
+                new_obj.matrix_basis = Matrix.Translation(pos)
+                context.scene.objects.link(new_obj)
+                bpy.ops.object.select_all(action = "DESELECT")
+                bpy.data.objects[new_obj_name].select = True
+                context.scene.objects.active = new_obj
+                for this_vertex in new_mesh.vertices :
+                    this_vertex.select = True # usual Blender default for newly-created object
+                #end for
+                # TBD materials
+                pos += Vector((width, 0, 0))
             #end for
-            new_mesh_name = new_obj_name = "Book"
-            new_mesh = bpy.data.meshes.new(new_mesh_name)
-            new_mesh.from_pydata(vertices, [], book_mesh["faces"])
-            new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
-            new_obj.matrix_basis = Matrix.Translation(pos)
-            context.scene.objects.link(new_obj)
-            bpy.ops.object.select_all(action = "DESELECT")
-            bpy.data.objects[new_obj_name].select = True
-            context.scene.objects.active = new_obj
-            for this_vertex in new_mesh.vertices :
-                this_vertex.select = True # usual Blender default for newly-created object
-            #end for
-            # TBD count
-            # TBD materials
             # all done
             status = {"FINISHED"}
         except Failure as why :
