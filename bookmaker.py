@@ -2,8 +2,10 @@
 # Blender add-on script to generate a random row of books.
 #-
 
+import sys
 import math
 import random
+import colorsys
 import bpy
 from mathutils import \
     Matrix, \
@@ -13,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 5, 1),
+        "version" : (0, 6, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -39,7 +41,7 @@ class Failure(Exception) :
 #end Failure
 
 #+
-# Book mesh
+# Book mesh and materials
 #-
 
 book_mesh = \
@@ -527,6 +529,25 @@ book_mesh = \
 
         # "bottom_vertices" : done below
 
+        "paper_faces" :
+            {
+                1,
+                41,
+                84,
+                85,
+                86,
+                87,
+                88,
+                101,
+                102,
+                103,
+                104,
+                105,
+                106,
+                109,
+                119,
+            },
+
     }
 book_mesh["bounds"] = \
     (
@@ -541,6 +562,50 @@ book_mesh["front_vertices"] = \
 book_mesh["bottom_vertices"] = \
     set(range(len(book_mesh["vertices"]))) - book_mesh["top_vertices"]
   # everything that isn’t a top vertex
+
+def define_book_materials() :
+    materials = {}
+    for name, hsv_colour, gloss in \
+        (
+            ("cover", (0.96, 0.68, 0.5), 0.5),
+            ("paper", (0, 0, 0.906), 0),
+        ) \
+    :
+        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
+        material = bpy.data.materials.new(name)
+        material.diffuse_color = rgb_colour
+        material.use_nodes = True
+        material_tree = material.node_tree
+        for node in material_tree.nodes :
+          # clear out default nodes
+            material_tree.nodes.remove(node)
+        #end for
+        colour_shader = material_tree.nodes.new("ShaderNodeBsdfDiffuse")
+        colour_shader.location = (0, 0)
+        colour_shader.inputs[0].default_value = rgb_colour + (1,)
+        material_output = material_tree.nodes.new("ShaderNodeOutputMaterial")
+        if gloss != 0 :
+            material_output.location = (400, 0)
+            gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
+            gloss_shader.location = (0, -150)
+            mix_shader = material_tree.nodes.new("ShaderNodeMixShader")
+            mix_shader.location = (200, 0)
+            material_tree.links.new(colour_shader.outputs[0], mix_shader.inputs[1])
+            material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
+            mix_shader.inputs[0].default_value = gloss
+            material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
+        else :
+            material_output.location = (200, 0)
+            material_tree.links.new(colour_shader.outputs[0], material_output.inputs[0])
+        #end if
+        for node in material_tree.nodes :
+            node.select = False
+        #end for
+        materials[name] = material
+    #end for
+    return \
+        materials
+#end define_book_materials
 
 #+
 # Mainline
@@ -664,11 +729,18 @@ class Bookmaker(bpy.types.Operator) :
 
     def action_common(self, context, redoing) :
         try :
+            if context.scene.render.engine != "CYCLES" :
+                raise Failure("Only Cycles renderer is supported")
+            #end if
             pos = context.scene.cursor_location.copy()
             random.seed(self.ranseed)
             prev_rotation_displacement = 0
             bpy.ops.object.select_all(action = "DESELECT")
+            materials = None
             for j in range(self.count) :
+                if materials == None :
+                    materials = define_book_materials()
+                #end if
                 width = max(self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10), dimensions_min[0])
                 depth = max(self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10), dimensions_min[1])
                 height = max(self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10), dimensions_min[2])
@@ -698,7 +770,17 @@ class Bookmaker(bpy.types.Operator) :
                 #end for
                 new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
                 new_mesh = bpy.data.meshes.new(new_mesh_name)
+                new_mesh.materials.append(materials["cover"])
+                new_mesh.materials.append(materials["paper"])
                 new_mesh.from_pydata(vertices, [], book_mesh["faces"])
+                for i in range(len(book_mesh["faces"])) :
+                    p = new_mesh.polygons[i]
+                    if i in book_mesh["paper_faces"] :
+                        p.material_index = 1
+                    else :
+                        p.material_index = 0
+                    #end if
+                #end for
                 new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
                 new_obj.matrix_basis = \
                     (
@@ -717,7 +799,6 @@ class Bookmaker(bpy.types.Operator) :
                 for this_vertex in new_mesh.vertices :
                     this_vertex.select = True # usual Blender default for newly-created object
                 #end for
-                # TBD materials
                 pos += Vector((width + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
                 prev_rotation_displacement = rotation_displacement
             #end for
