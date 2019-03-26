@@ -414,8 +414,6 @@ book_mesh = \
                 132,
             },
 
-        # "middle_vertices" : done below
-
         # "front_vertices" : done below
 
         "back_vertices" :
@@ -537,14 +535,6 @@ book_mesh["bounds"] = \
         (min(v[2] for v in book_mesh["vertices"]), max(v[2] for v in book_mesh["vertices"])),
     )
 print("book_mesh[\"bounds\"] = %s" % repr(book_mesh["bounds"])) # debug
-book_mesh["middle_vertices"] = \
-    (
-        set(range(len(book_mesh["vertices"])))
-    -
-        book_mesh["left_vertices"]
-    -
-        book_mesh["right_vertices"]
-    )
 book_mesh["front_vertices"] = \
     set(range(len(book_mesh["vertices"]))) - book_mesh["back_vertices"]
   # everything that isn’t a back vertex
@@ -692,10 +682,10 @@ class Bookmaker(bpy.types.Operator) :
                     coords[0] -= bounds[0][0]
                     coords[1] -= bounds[1][0]
                     coords[2] -= bounds[2][0]
-                    if i in book_mesh["middle_vertices"] :
-                        coords[0] *= width / (bounds[0][1] - bounds[0][0])
-                    elif i in book_mesh["right_vertices"] :
+                    if i in book_mesh["right_vertices"] :
                         coords[0] += width - (bounds[0][1] - bounds[0][0])
+                    elif i not in book_mesh["left_vertices"] :
+                        coords[0] *= width / (bounds[0][1] - bounds[0][0])
                     #end if
                     if i in book_mesh["back_vertices"] :
                         coords[1] += depth - (bounds[1][1] - bounds[1][0])
