@@ -13,7 +13,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 3, 0),
+        "version" : (0, 4, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -27,6 +27,8 @@ bl_info = \
 #+
 # Useful stuff
 #-
+
+deg = math.pi / 180
 
 class Failure(Exception) :
 
@@ -640,6 +642,15 @@ class Bookmaker(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
+    rotate_var = bpy.props.FloatProperty \
+      (
+        name = "rotate_var",
+        description = "variation in rotation angle",
+        min = 0,
+        max = 45 * deg,
+        default = 0,
+        subtype = "ANGLE"
+      )
     ranseed = bpy.props.IntProperty \
       (
         name = "ranseed",
@@ -657,17 +668,22 @@ class Bookmaker(bpy.types.Operator) :
         the_col.prop(self, "depth_var")
         the_col.prop(self, "height")
         the_col.prop(self, "height_var")
+        the_col.prop(self, "rotate_var")
         the_col.prop(self, "ranseed")
     #end draw
 
     def action_common(self, context, redoing) :
         try :
-            pos = Vector(context.scene.cursor_location)
+            pos = context.scene.cursor_location.copy()
             random.seed(self.ranseed)
+            prev_rotation_displacement = 0
             for j in range(self.count) :
                 width = self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10)
                 depth = self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10)
                 height = self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10)
+                rotate = (2 * random.random() - 1) * self.rotate_var
+                rotation_displacement = height * math.sin(rotate)
+                displacement_delta = rotation_displacement - prev_rotation_displacement
                 vertices = []
                 bounds = book_mesh["bounds"]
                 for i in range(len(book_mesh["vertices"])) :
@@ -692,7 +708,17 @@ class Bookmaker(bpy.types.Operator) :
                 new_mesh = bpy.data.meshes.new(new_mesh_name)
                 new_mesh.from_pydata(vertices, [], book_mesh["faces"])
                 new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
-                new_obj.matrix_basis = Matrix.Translation(pos)
+                new_obj.matrix_basis = \
+                    (
+                        Matrix.Translation
+                          (
+                            Vector(((0, - displacement_delta)[displacement_delta < 0], 0, 0))
+                          )
+                    *
+                        Matrix.Translation(pos)
+                    *
+                        Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
+                    )
                 context.scene.objects.link(new_obj)
                 bpy.ops.object.select_all(action = "DESELECT")
                 bpy.data.objects[new_obj_name].select = True
@@ -701,7 +727,8 @@ class Bookmaker(bpy.types.Operator) :
                     this_vertex.select = True # usual Blender default for newly-created object
                 #end for
                 # TBD materials
-                pos += Vector((width, 0, 0))
+                pos += Vector((width + (0, - displacement_delta)[displacement_delta < 0], 0, 0))
+                prev_rotation_displacement = rotation_displacement
             #end for
             # all done
             status = {"FINISHED"}
