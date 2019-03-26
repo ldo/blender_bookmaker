@@ -667,6 +667,7 @@ class Bookmaker(bpy.types.Operator) :
             pos = context.scene.cursor_location.copy()
             random.seed(self.ranseed)
             prev_rotation_displacement = 0
+            bpy.ops.object.select_all(action = "DESELECT")
             for j in range(self.count) :
                 width = max(self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10), dimensions_min[0])
                 depth = max(self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10), dimensions_min[1])
@@ -711,7 +712,6 @@ class Bookmaker(bpy.types.Operator) :
                         Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
                     )
                 context.scene.objects.link(new_obj)
-                bpy.ops.object.select_all(action = "DESELECT")
                 bpy.data.objects[new_obj_name].select = True
                 context.scene.objects.active = new_obj
                 for this_vertex in new_mesh.vertices :
