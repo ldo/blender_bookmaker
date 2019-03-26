@@ -4,6 +4,8 @@
 
 import math
 import bpy
+from mathutils import \
+    Matrix
 
 bl_info = \
     {
@@ -623,6 +625,7 @@ class Bookmaker(bpy.types.Operator) :
             new_mesh = bpy.data.meshes.new(new_mesh_name)
             new_mesh.from_pydata(vertices, [], book_mesh["faces"])
             new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
+            new_obj.matrix_basis = Matrix.Translation(pos)
             context.scene.objects.link(new_obj)
             bpy.ops.object.select_all(action = "DESELECT")
             bpy.data.objects[new_obj_name].select = True
