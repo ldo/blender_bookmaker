@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 6, 0),
+        "version" : (0, 6, 1),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -567,8 +567,8 @@ def define_book_materials() :
     materials = {}
     for name, hsv_colour, gloss in \
         (
-            ("cover", (0.96, 0.68, 0.5), 0.5),
-            ("paper", (0, 0, 0.906), 0),
+            ("books_cover", (0.96, 0.68, 0.5), 0.25),
+            ("books_paper", (0, 0, 0.906), 0),
         ) \
     :
         rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
@@ -770,8 +770,8 @@ class Bookmaker(bpy.types.Operator) :
                 #end for
                 new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
                 new_mesh = bpy.data.meshes.new(new_mesh_name)
-                new_mesh.materials.append(materials["cover"])
-                new_mesh.materials.append(materials["paper"])
+                new_mesh.materials.append(materials["books_cover"])
+                new_mesh.materials.append(materials["books_paper"])
                 new_mesh.from_pydata(vertices, [], book_mesh["faces"])
                 for i in range(len(book_mesh["faces"])) :
                     p = new_mesh.polygons[i]
