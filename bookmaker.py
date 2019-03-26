@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 6, 1),
+        "version" : (0, 6, 2),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -651,6 +651,11 @@ class Bookmaker(bpy.types.Operator) :
         min = 1,
         default = 1,
       )
+    position = bpy.props.FloatVectorProperty \
+      (
+        name = "position",
+        description = "where to position the books (initially at the 3D cursor)",
+      )
     width = bpy.props.FloatProperty \
       (
         name = "width",
@@ -716,6 +721,7 @@ class Bookmaker(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count")
+        the_col.prop(self, "position")
         the_col.prop(self, "width")
         the_col.prop(self, "width_var")
         the_col.prop(self, "depth")
@@ -731,7 +737,12 @@ class Bookmaker(bpy.types.Operator) :
             if context.scene.render.engine != "CYCLES" :
                 raise Failure("Only Cycles renderer is supported")
             #end if
-            pos = context.scene.cursor_location.copy()
+            if redoing :
+                pos = Vector(tuple(self.position))
+            else :
+                pos = context.scene.cursor_location.copy()
+                self.position = pos.copy()
+            #end if
             random.seed(self.ranseed)
             prev_rotation_displacement = 0
             bpy.ops.object.select_all(action = "DESELECT")
