@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 8, 0),
+        "version" : (0, 8, 1),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -582,11 +582,18 @@ def define_book_materials(nr_colours) :
             material, material_tree, colour_shader, material_output
     #end define_material_common
 
+    def deselect_all(material_tree) :
+        for node in material_tree.nodes :
+            node.select = False
+        #end for
+    #end deselect_all
+
     def define_diffuse_material(name, hsv_colour) :
         material, material_tree, colour_shader, material_output = \
             define_material_common(name, hsv_colour)
         material_output.location = (200, 0)
         material_tree.links.new(colour_shader.outputs[0], material_output.inputs[0])
+        deselect_all(material_tree)
         return \
             material
     #end define_diffuse_material
@@ -605,6 +612,7 @@ def define_book_materials(nr_colours) :
         material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
         mix_shader.inputs[0].default_value = gloss
         material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
+        deselect_all(material_tree)
         return \
             material
     #end define_cover_material
