@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 8, 1),
+        "version" : (0, 8, 2),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -789,6 +789,14 @@ class BookmakerRow(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
+    gap_var = bpy.props.FloatProperty \
+      (
+        name = "gap_var",
+        description = "variation in gap between books (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
+      )
     rotate_var = bpy.props.FloatProperty \
       (
         name = "rotate_var",
@@ -817,6 +825,7 @@ class BookmakerRow(bpy.types.Operator) :
         the_col.prop(self, "depth_var")
         the_col.prop(self, "height")
         the_col.prop(self, "height_var")
+        the_col.prop(self, "gap_var")
         the_col.prop(self, "rotate_var")
         the_col.prop(self, "ranseed")
     #end draw
@@ -843,6 +852,7 @@ class BookmakerRow(bpy.types.Operator) :
                 new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
                 rotate = (2 * random.random() - 1) * self.rotate_var
                 rotation_displacement = height * math.sin(rotate)
+                gap = self.width * (10 ** ((2 * random.random() - 1) * self.gap_var / 10) - 1)
                 x_disp_delta = rotation_displacement - prev_rotation_displacement
                 z_disp_delta = max(width * math.sin(rotate), 0)
                 new_obj.matrix_basis = \
@@ -852,11 +862,16 @@ class BookmakerRow(bpy.types.Operator) :
                             Vector(((0, - x_disp_delta)[x_disp_delta < 0], 0, z_disp_delta))
                           )
                     *
+                        Matrix.Translation
+                          (
+                            Vector((gap, 0, 0))
+                          )
+                    *
                         new_obj.matrix_basis
                     *
                         Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
                     )
-                pos += Vector((width + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
+                pos += Vector((width + gap + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
                 prev_rotation_displacement = rotation_displacement
             #end for
             # all done
