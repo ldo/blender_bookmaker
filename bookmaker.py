@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 6, 2),
+        "version" : (0, 6, 3),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -780,6 +780,7 @@ class Bookmaker(bpy.types.Operator) :
                 #end for
                 new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
                 new_mesh = bpy.data.meshes.new(new_mesh_name)
+                new_mesh_name = new_mesh.name
                 new_mesh.materials.append(materials["books_cover"])
                 new_mesh.materials.append(materials["books_paper"])
                 new_mesh.from_pydata(vertices, [], book_mesh["faces"])
@@ -792,6 +793,7 @@ class Bookmaker(bpy.types.Operator) :
                     #end if
                 #end for
                 new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
+                new_obj_name = new_obj.name
                 new_obj.matrix_basis = \
                     (
                         Matrix.Translation
