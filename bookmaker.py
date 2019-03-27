@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 7, 0),
+        "version" : (0, 8, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -562,16 +562,11 @@ book_mesh["bottom_vertices"] = \
     set(range(len(book_mesh["vertices"]))) - book_mesh["top_vertices"]
   # everything that isn’t a top vertex
 
-def define_book_materials() :
-    materials = {}
-    for name, hsv_colour, gloss in \
-        (
-            ("books_cover", (0.96, 0.68, 0.5), 0.25),
-            ("books_paper", (0, 0, 0.906), 0),
-        ) \
-    :
-        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
+def define_book_materials(nr_colours) :
+
+    def define_material_common(name, hsv_colour) :
         material = bpy.data.materials.new(name)
+        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
         material.diffuse_color = rgb_colour
         material.use_nodes = True
         material_tree = material.node_tree
@@ -583,24 +578,51 @@ def define_book_materials() :
         colour_shader.location = (0, 0)
         colour_shader.inputs[0].default_value = rgb_colour + (1,)
         material_output = material_tree.nodes.new("ShaderNodeOutputMaterial")
-        if gloss != 0 :
-            material_output.location = (400, 0)
-            gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
-            gloss_shader.location = (0, -150)
-            mix_shader = material_tree.nodes.new("ShaderNodeMixShader")
-            mix_shader.location = (200, 0)
-            material_tree.links.new(colour_shader.outputs[0], mix_shader.inputs[1])
-            material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
-            mix_shader.inputs[0].default_value = gloss
-            material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
-        else :
-            material_output.location = (200, 0)
-            material_tree.links.new(colour_shader.outputs[0], material_output.inputs[0])
-        #end if
-        for node in material_tree.nodes :
-            node.select = False
-        #end for
-        materials[name] = material
+        return \
+            material, material_tree, colour_shader, material_output
+    #end define_material_common
+
+    def define_diffuse_material(name, hsv_colour) :
+        material, material_tree, colour_shader, material_output = \
+            define_material_common(name, hsv_colour)
+        material_output.location = (200, 0)
+        material_tree.links.new(colour_shader.outputs[0], material_output.inputs[0])
+        return \
+            material
+    #end define_diffuse_material
+
+    def define_cover_material(name, hsv_colour) :
+        material, material_tree, colour_shader, material_output = \
+            define_material_common(name, hsv_colour)
+        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
+        gloss = 0.25
+        material_output.location = (400, 0)
+        gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
+        gloss_shader.location = (0, -150)
+        mix_shader = material_tree.nodes.new("ShaderNodeMixShader")
+        mix_shader.location = (200, 0)
+        material_tree.links.new(colour_shader.outputs[0], mix_shader.inputs[1])
+        material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
+        mix_shader.inputs[0].default_value = gloss
+        material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
+        return \
+            material
+    #end define_cover_material
+
+#begin define_book_materials
+    materials = \
+        {
+            "books_paper" : define_diffuse_material("books_paper", (0, 0, 0.906)),
+        }
+    base_cover_colour = (0.96, 0.68, 0.5)
+    book_cover = []
+    materials["books_cover"] = book_cover
+    for i in range(nr_colours) :
+        hue = (base_cover_colour[0] + i / nr_colours) % 1.0
+        book_cover.append \
+          (
+            define_cover_material("books_cover.%03d" % i, (hue,) + base_cover_colour[1:])
+          )
     #end for
     return \
         materials
@@ -665,15 +687,15 @@ def generate_book(self, context, pos, materials, j) :
     new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
     new_mesh = bpy.data.meshes.new(new_mesh_name)
     new_mesh_name = new_mesh.name
-    new_mesh.materials.append(materials["books_cover"])
     new_mesh.materials.append(materials["books_paper"])
+    new_mesh.materials.append(random.choice(materials["books_cover"]))
     new_mesh.from_pydata(vertices, [], book_mesh["faces"])
     for i in range(len(book_mesh["faces"])) :
         p = new_mesh.polygons[i]
         if i in book_mesh["paper_faces"] :
-            p.material_index = 1
-        else :
             p.material_index = 0
+        else :
+            p.material_index = 1
         #end if
     #end for
     new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
@@ -699,6 +721,13 @@ class BookmakerRow(bpy.types.Operator) :
       (
         name = "count",
         description = "How many books to generate",
+        min = 1,
+        default = 1,
+      )
+    nr_colours = bpy.props.IntProperty \
+      (
+        name = "nr_colours",
+        description = "How many different cover colours to give them",
         min = 1,
         default = 1,
       )
@@ -772,6 +801,7 @@ class BookmakerRow(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count")
+        the_col.prop(self, "nr_colours")
         the_col.prop(self, "position")
         the_col.prop(self, "width")
         the_col.prop(self, "width_var")
@@ -800,7 +830,7 @@ class BookmakerRow(bpy.types.Operator) :
             materials = None
             for j in range(self.count) :
                 if materials == None :
-                    materials = define_book_materials()
+                    materials = define_book_materials(self.nr_colours)
                 #end if
                 new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
                 rotate = (2 * random.random() - 1) * self.rotate_var
@@ -854,6 +884,13 @@ class BookmakerStack(bpy.types.Operator) :
       (
         name = "count",
         description = "How many books to generate",
+        min = 1,
+        default = 1,
+      )
+    nr_colours = bpy.props.IntProperty \
+      (
+        name = "nr_colours",
+        description = "How many different cover colours to give them",
         min = 1,
         default = 1,
       )
@@ -927,6 +964,7 @@ class BookmakerStack(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count")
+        the_col.prop(self, "nr_colours")
         the_col.prop(self, "position")
         the_col.prop(self, "width")
         the_col.prop(self, "width_var")
@@ -954,7 +992,7 @@ class BookmakerStack(bpy.types.Operator) :
             prev_depth = prev_height = None
             for j in range(self.count) :
                 if materials == None :
-                    materials = define_book_materials()
+                    materials = define_book_materials(self.nr_colours)
                 #end if
                 new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
                 rotate = (2 * random.random() - 1) * self.rotate_var
