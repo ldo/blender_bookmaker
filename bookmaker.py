@@ -1,5 +1,5 @@
 #+
-# Blender add-on script to generate a random row of books.
+# Blender add-on script to generate a random row or stack of books.
 #-
 
 import sys
@@ -15,11 +15,11 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 6, 3),
+        "version" : (0, 7, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
-            "generates a row of book objects with randomly-distributed parameters.",
+            "generates a row or stack of book objects with randomly-distributed parameters.",
         "warning" : "",
         "wiki_url" : "",
         "tracker_url" : "",
@@ -638,9 +638,60 @@ dimensions_min = \
     )
 dimension_defaults = tuple(v[1] - v[0] for v in book_mesh["bounds"])
 
-class Bookmaker(bpy.types.Operator) :
-    bl_idname = "add_mesh.bookmaker"
-    bl_label = "Bookmaker"
+def generate_book(self, context, pos, materials, j) :
+    width = max(self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10), dimensions_min[0])
+    depth = max(self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10), dimensions_min[1])
+    height = max(self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10), dimensions_min[2])
+    vertices = []
+    bounds = book_mesh["bounds"]
+    for i in range(len(book_mesh["vertices"])) :
+        coords = list(book_mesh["vertices"][i])
+        coords[0] -= bounds[0][0]
+        coords[1] -= bounds[1][0]
+        coords[2] -= bounds[2][0]
+        if i in book_mesh["right_vertices"] :
+            coords[0] += width - (bounds[0][1] - bounds[0][0])
+        elif i not in book_mesh["left_vertices"] :
+            coords[0] *= width / (bounds[0][1] - bounds[0][0])
+        #end if
+        if i in book_mesh["back_vertices"] :
+            coords[1] += depth - (bounds[1][1] - bounds[1][0])
+        #end if
+        if i in book_mesh["top_vertices"] :
+            coords[2] += height - (bounds[2][1] - bounds[2][0])
+        #end if
+        vertices.append(coords)
+    #end for
+    new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
+    new_mesh = bpy.data.meshes.new(new_mesh_name)
+    new_mesh_name = new_mesh.name
+    new_mesh.materials.append(materials["books_cover"])
+    new_mesh.materials.append(materials["books_paper"])
+    new_mesh.from_pydata(vertices, [], book_mesh["faces"])
+    for i in range(len(book_mesh["faces"])) :
+        p = new_mesh.polygons[i]
+        if i in book_mesh["paper_faces"] :
+            p.material_index = 1
+        else :
+            p.material_index = 0
+        #end if
+    #end for
+    new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
+    new_obj_name = new_obj.name
+    new_obj.matrix_basis = Matrix.Translation(pos)
+    context.scene.objects.link(new_obj)
+    bpy.data.objects[new_obj_name].select = True
+    context.scene.objects.active = new_obj
+    for this_vertex in new_mesh.vertices :
+        this_vertex.select = True # usual Blender default for newly-created object
+    #end for
+    return \
+        new_obj, width, depth, height
+#end generate_book
+
+class BookmakerRow(bpy.types.Operator) :
+    bl_idname = "add_mesh.bookmaker_row"
+    bl_label = "Bookmaker Row"
     bl_context = "objectmode"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -751,49 +802,11 @@ class Bookmaker(bpy.types.Operator) :
                 if materials == None :
                     materials = define_book_materials()
                 #end if
-                width = max(self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10), dimensions_min[0])
-                depth = max(self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10), dimensions_min[1])
-                height = max(self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10), dimensions_min[2])
+                new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
                 rotate = (2 * random.random() - 1) * self.rotate_var
                 rotation_displacement = height * math.sin(rotate)
                 x_disp_delta = rotation_displacement - prev_rotation_displacement
                 z_disp_delta = max(width * math.sin(rotate), 0)
-                vertices = []
-                bounds = book_mesh["bounds"]
-                for i in range(len(book_mesh["vertices"])) :
-                    coords = list(book_mesh["vertices"][i])
-                    coords[0] -= bounds[0][0]
-                    coords[1] -= bounds[1][0]
-                    coords[2] -= bounds[2][0]
-                    if i in book_mesh["right_vertices"] :
-                        coords[0] += width - (bounds[0][1] - bounds[0][0])
-                    elif i not in book_mesh["left_vertices"] :
-                        coords[0] *= width / (bounds[0][1] - bounds[0][0])
-                    #end if
-                    if i in book_mesh["back_vertices"] :
-                        coords[1] += depth - (bounds[1][1] - bounds[1][0])
-                    #end if
-                    if i in book_mesh["top_vertices"] :
-                        coords[2] += height - (bounds[2][1] - bounds[2][0])
-                    #end if
-                    vertices.append(coords)
-                #end for
-                new_mesh_name = new_obj_name = "Book.%03d" % (j + 1)
-                new_mesh = bpy.data.meshes.new(new_mesh_name)
-                new_mesh_name = new_mesh.name
-                new_mesh.materials.append(materials["books_cover"])
-                new_mesh.materials.append(materials["books_paper"])
-                new_mesh.from_pydata(vertices, [], book_mesh["faces"])
-                for i in range(len(book_mesh["faces"])) :
-                    p = new_mesh.polygons[i]
-                    if i in book_mesh["paper_faces"] :
-                        p.material_index = 1
-                    else :
-                        p.material_index = 0
-                    #end if
-                #end for
-                new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
-                new_obj_name = new_obj.name
                 new_obj.matrix_basis = \
                     (
                         Matrix.Translation
@@ -801,16 +814,10 @@ class Bookmaker(bpy.types.Operator) :
                             Vector(((0, - x_disp_delta)[x_disp_delta < 0], 0, z_disp_delta))
                           )
                     *
-                        Matrix.Translation(pos)
+                        new_obj.matrix_basis
                     *
                         Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
                     )
-                context.scene.objects.link(new_obj)
-                bpy.data.objects[new_obj_name].select = True
-                context.scene.objects.active = new_obj
-                for this_vertex in new_mesh.vertices :
-                    this_vertex.select = True # usual Blender default for newly-created object
-                #end for
                 pos += Vector((width + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
                 prev_rotation_displacement = rotation_displacement
             #end for
@@ -835,10 +842,171 @@ class Bookmaker(bpy.types.Operator) :
             self.action_common(context, False)
     #end invoke
 
-#end Bookmaker
+#end BookmakerRow
+
+class BookmakerStack(bpy.types.Operator) :
+    bl_idname = "add_mesh.bookmaker_stack"
+    bl_label = "Bookmaker Row"
+    bl_context = "objectmode"
+    bl_options = {"REGISTER", "UNDO"}
+
+    count = bpy.props.IntProperty \
+      (
+        name = "count",
+        description = "How many books to generate",
+        min = 1,
+        default = 1,
+      )
+    position = bpy.props.FloatVectorProperty \
+      (
+        name = "position",
+        description = "where to position the books (initially at the 3D cursor)",
+      )
+    width = bpy.props.FloatProperty \
+      (
+        name = "width",
+        description = "base width of one book",
+        min = dimensions_min[0],
+        default = dimension_defaults[0],
+      )
+    width_var = bpy.props.FloatProperty \
+      (
+        name = "width_var",
+        description = "variation in width (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
+      )
+    depth = bpy.props.FloatProperty \
+      (
+        name = "depth",
+        description = "base depth of one book",
+        min = dimensions_min[1],
+        default = dimension_defaults[1],
+      )
+    depth_var = bpy.props.FloatProperty \
+      (
+        name = "depth_var",
+        description = "variation in depth (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
+      )
+    height = bpy.props.FloatProperty \
+      (
+        name = "height",
+        description = "base height of one book",
+        min = dimensions_min[2],
+        default = dimension_defaults[2],
+      )
+    height_var = bpy.props.FloatProperty \
+      (
+        name = "height_var",
+        description = "variation in height (logarithmic)",
+        min = 0,
+        max = 10,
+        default = 0,
+      )
+    rotate_var = bpy.props.FloatProperty \
+      (
+        name = "rotate_var",
+        description = "variation in rotation angle",
+        min = 0,
+        max = 360 * deg,
+        default = 0,
+        subtype = "ANGLE"
+      )
+    ranseed = bpy.props.IntProperty \
+      (
+        name = "ranseed",
+        description = "Pseudorandom seed",
+        min = 0,
+        default = 0,
+      )
+
+    def draw(self, context) :
+        the_col = self.layout.column(align = True)
+        the_col.prop(self, "count")
+        the_col.prop(self, "position")
+        the_col.prop(self, "width")
+        the_col.prop(self, "width_var")
+        the_col.prop(self, "depth")
+        the_col.prop(self, "depth_var")
+        the_col.prop(self, "height")
+        the_col.prop(self, "height_var")
+        the_col.prop(self, "rotate_var")
+        the_col.prop(self, "ranseed")
+    #end draw
+
+    def action_common(self, context, redoing) :
+        try :
+            if context.scene.render.engine != "CYCLES" :
+                raise Failure("Only Cycles renderer is supported")
+            #end if
+            if redoing :
+                pos = Vector(tuple(self.position))
+            else :
+                pos = context.scene.cursor_location.copy()
+                self.position = pos.copy()
+            #end if
+            random.seed(self.ranseed)
+            materials = None
+            prev_depth = prev_height = None
+            for j in range(self.count) :
+                if materials == None :
+                    materials = define_book_materials()
+                #end if
+                new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
+                rotate = (2 * random.random() - 1) * self.rotate_var
+                delta_pos = [0, 0, 0]
+                if prev_depth != None : # <=> prev_height != None
+                    delta_pos[0] = random.random() * (prev_height - height)
+                    delta_pos[1] = random.random() * (prev_depth - depth)
+                #end if
+                new_obj.matrix_basis = \
+                    (
+                        new_obj.matrix_basis
+                    *
+                        Matrix.Translation(Vector((- height / 2, depth / 2, 0)))
+                    *
+                        Matrix.Rotation(rotate, 4, Vector((0, 0, 1)))
+                    *
+                        Matrix.Translation(Vector((height / 2, - depth / 2, 0)))
+                    *
+                        Matrix.Translation(delta_pos)
+                    *
+                        Matrix.Rotation(- 90 * deg, 4, Vector((0, 1, 0)))
+                    )
+                prev_depth = depth
+                prev_height = height
+                pos += Vector((0, 0, width))
+            #end for
+            # all done
+            status = {"FINISHED"}
+        except Failure as why :
+            sys.stderr.write("Failure: %s\n" % why.msg) # debug
+            self.report({"ERROR"}, why.msg)
+            status = {"CANCELLED"}
+        #end try
+        return \
+            status
+    #end action_common
+
+    def execute(self, context) :
+        return \
+            self.action_common(context, True)
+    #end execute
+
+    def invoke(self, context, event) :
+        return \
+            self.action_common(context, False)
+    #end invoke
+
+#end BookmakerStack
 
 def add_invoke_item(self, context) :
-    self.layout.operator(Bookmaker.bl_idname, text = "Books")
+    self.layout.operator(BookmakerRow.bl_idname, text = "Books Row")
+    self.layout.operator(BookmakerStack.bl_idname, text = "Books Stack")
 #end add_invoke_item
 
 def register() :
