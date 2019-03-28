@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 8, 3),
+        "version" : (0, 8, 4),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -562,7 +562,7 @@ book_mesh["bottom_vertices"] = \
     set(range(len(book_mesh["vertices"]))) - book_mesh["top_vertices"]
   # everything that isn’t a top vertex
 
-def define_book_materials(nr_colours) :
+def define_book_materials(context, nr_colours, use_materials_from_active) :
 
     def define_material_common(name, hsv_colour) :
         material = bpy.data.materials.new(name)
@@ -618,20 +618,33 @@ def define_book_materials(nr_colours) :
     #end define_cover_material
 
 #begin define_book_materials
-    materials = \
-        {
-            "books_paper" : define_diffuse_material("books_paper", (0, 0, 0.906)),
-        }
-    base_cover_colour = (0.96, 0.68, 0.5)
-    book_cover = []
-    materials["books_cover"] = book_cover
-    for i in range(nr_colours) :
-        hue = (base_cover_colour[0] + i / nr_colours) % 1.0
-        book_cover.append \
-          (
-            define_cover_material("books_cover.%03d" % i, (hue,) + base_cover_colour[1:])
-          )
-    #end for
+    if use_materials_from_active :
+        active_obj = context.scene.objects.active
+        if active_obj == None or active_obj.material_slots == None or len(active_obj.material_slots) < 2 :
+            raise Failure("active object must have at least 2 materials attached")
+        #end if
+        material_slots = active_obj.material_slots
+        materials = \
+            {
+                "books_paper" : material_slots[0].material,
+                "books_cover" : list(m.material for m in material_slots[1:]),
+            }
+    else :
+        materials = \
+            {
+                "books_paper" : define_diffuse_material("books_paper", (0, 0, 0.906)),
+            }
+        base_cover_colour = (0.96, 0.68, 0.5)
+        book_cover = []
+        materials["books_cover"] = book_cover
+        for i in range(nr_colours) :
+            hue = (base_cover_colour[0] + i / nr_colours) % 1.0
+            book_cover.append \
+              (
+                define_cover_material("books_cover.%03d" % i, (hue,) + base_cover_colour[1:])
+              )
+        #end for
+    #end if
     return \
         materials
 #end define_book_materials
@@ -739,6 +752,11 @@ class BookmakerRow(bpy.types.Operator) :
         min = 1,
         default = 1,
       )
+    use_materials_from_active = bpy.props.BoolProperty \
+      (
+        name = "use_materials_from_active",
+        description = "reuse materials from active object (need at least 2 materials)",
+      )
     position = bpy.props.FloatVectorProperty \
       (
         name = "position",
@@ -818,6 +836,7 @@ class BookmakerRow(bpy.types.Operator) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count", "Nr Books")
         the_col.prop(self, "nr_colours", "Nr Colours")
+        the_col.prop(self, "use_materials_from_active", "Reuse Materials")
         the_col.prop(self, "position", "Position")
         the_col.prop(self, "width", "Width")
         the_col.prop(self, "width_var", "Width Variation")
@@ -847,7 +866,12 @@ class BookmakerRow(bpy.types.Operator) :
             materials = None
             for j in range(self.count) :
                 if materials == None :
-                    materials = define_book_materials(self.nr_colours)
+                    materials = define_book_materials \
+                      (
+                        context,
+                        self.nr_colours,
+                        self.use_materials_from_active
+                      )
                 #end if
                 new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
                 rotate = (2 * random.random() - 1) * self.rotate_var
@@ -916,6 +940,11 @@ class BookmakerStack(bpy.types.Operator) :
         description = "How many different cover colours to give them",
         min = 1,
         default = 1,
+      )
+    use_materials_from_active = bpy.props.BoolProperty \
+      (
+        name = "use_materials_from_active",
+        description = "reuse materials from active object (need at least 2 materials)",
       )
     position = bpy.props.FloatVectorProperty \
       (
@@ -988,6 +1017,7 @@ class BookmakerStack(bpy.types.Operator) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count", "Nr Books")
         the_col.prop(self, "nr_colours", "Nr Colours")
+        the_col.prop(self, "use_materials_from_active", "Reuse Materials")
         the_col.prop(self, "position", "Position")
         the_col.prop(self, "width", "Width")
         the_col.prop(self, "width_var", "Width Variation")
@@ -1015,7 +1045,12 @@ class BookmakerStack(bpy.types.Operator) :
             prev_depth = prev_height = None
             for j in range(self.count) :
                 if materials == None :
-                    materials = define_book_materials(self.nr_colours)
+                    materials = define_book_materials \
+                      (
+                        context,
+                        self.nr_colours,
+                        self.use_materials_from_active
+                      )
                 #end if
                 new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
                 rotate = (2 * random.random() - 1) * self.rotate_var
