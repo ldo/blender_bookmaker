@@ -15,7 +15,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 8, 2),
+        "version" : (0, 8, 3),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh > Books",
         "description" :
@@ -816,18 +816,18 @@ class BookmakerRow(bpy.types.Operator) :
 
     def draw(self, context) :
         the_col = self.layout.column(align = True)
-        the_col.prop(self, "count")
-        the_col.prop(self, "nr_colours")
-        the_col.prop(self, "position")
-        the_col.prop(self, "width")
-        the_col.prop(self, "width_var")
-        the_col.prop(self, "depth")
-        the_col.prop(self, "depth_var")
-        the_col.prop(self, "height")
-        the_col.prop(self, "height_var")
-        the_col.prop(self, "gap_var")
-        the_col.prop(self, "rotate_var")
-        the_col.prop(self, "ranseed")
+        the_col.prop(self, "count", "Nr Books")
+        the_col.prop(self, "nr_colours", "Nr Colours")
+        the_col.prop(self, "position", "Position")
+        the_col.prop(self, "width", "Width")
+        the_col.prop(self, "width_var", "Width Variation")
+        the_col.prop(self, "depth", "Depth")
+        the_col.prop(self, "depth_var", "Depth Variation")
+        the_col.prop(self, "height", "Height")
+        the_col.prop(self, "height_var", "Height Variation")
+        the_col.prop(self, "gap_var", "Gap")
+        the_col.prop(self, "rotate_var", "Rotate Variation")
+        the_col.prop(self, "ranseed", "Random Seed")
     #end draw
 
     def action_common(self, context, redoing) :
@@ -986,17 +986,17 @@ class BookmakerStack(bpy.types.Operator) :
 
     def draw(self, context) :
         the_col = self.layout.column(align = True)
-        the_col.prop(self, "count")
-        the_col.prop(self, "nr_colours")
-        the_col.prop(self, "position")
-        the_col.prop(self, "width")
-        the_col.prop(self, "width_var")
-        the_col.prop(self, "depth")
-        the_col.prop(self, "depth_var")
-        the_col.prop(self, "height")
-        the_col.prop(self, "height_var")
-        the_col.prop(self, "rotate_var")
-        the_col.prop(self, "ranseed")
+        the_col.prop(self, "count", "Nr Books")
+        the_col.prop(self, "nr_colours", "Nr Colours")
+        the_col.prop(self, "position", "Position")
+        the_col.prop(self, "width", "Width")
+        the_col.prop(self, "width_var", "Width Variation")
+        the_col.prop(self, "depth", "Depth")
+        the_col.prop(self, "depth_var", "Depth Variation")
+        the_col.prop(self, "height", "Height")
+        the_col.prop(self, "height_var", "Height Variation")
+        the_col.prop(self, "rotate_var", "Rotate Variation")
+        the_col.prop(self, "ranseed", "Random Seed")
     #end draw
 
     def action_common(self, context, redoing) :
