@@ -1,5 +1,8 @@
 #+
-# Blender add-on script to generate a random row or stack of books.
+# Blender add-on to generate a random row or stack of books.
+#
+# Copyright 2019 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# Licensed under CC-BY-SA <http://creativecommons.org/licenses/by-sa/4.0/>.
 #-
 
 import sys
@@ -17,7 +20,7 @@ bl_info = \
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
         "version" : (0, 9, 0),
         "blender" : (2, 7, 9),
-        "location" : "Add > Mesh > Books",
+        "location" : "Add > Mesh",
         "description" :
             "generates a row or stack of book objects with randomly-distributed parameters.",
         "warning" : "",
