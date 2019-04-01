@@ -18,7 +18,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (0, 9, 0),
+        "version" : (1, 0, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh",
         "description" :
@@ -1231,7 +1231,45 @@ book_meshes = \
 
 def define_book_materials(context, nr_colours, use_materials_from_active) :
 
-    def define_material_common(name, hsv_colour) :
+    cover_common = None
+
+    def deselect_all(material_tree) :
+        for node in material_tree.nodes :
+            node.select = False
+        #end for
+    #end deselect_all
+
+    def define_cover_common() :
+        # create a very basic common node group to use in all the different
+        # cover materials. That way, user can replace the guts of the node
+        # group and have it apply to all cover materials.
+        nonlocal cover_common
+        gloss = 0.25
+        cover_common = bpy.data.node_groups.new("BooksCoverCommon", "ShaderNodeTree")
+        material_tree = cover_common
+        material_input = material_tree.nodes.new("NodeGroupInput")
+        material_input.location = (-200, 0)
+        material_input.outputs.new("Colour", "RGBA")
+        material_output = material_tree.nodes.new("NodeGroupOutput")
+        material_output.location = (400, 0)
+        material_output.inputs.new("Shader", "SHADER")
+        colour_shader = material_tree.nodes.new("ShaderNodeBsdfDiffuse")
+        colour_shader.location = (0, 0)
+        gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
+        gloss_shader.location = (0, -150)
+        mix_shader = material_tree.nodes.new("ShaderNodeMixShader")
+        mix_shader.location = (200, 0)
+        material_tree.links.new(material_input.outputs[0], colour_shader.inputs[0])
+        material_tree.links.new(colour_shader.outputs[0], mix_shader.inputs[1])
+        material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
+        mix_shader.inputs[0].default_value = gloss
+        material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
+        material_tree.inputs[0].name = "Colour"
+        material_tree.outputs[0].name = "Shader"
+        deselect_all(material_tree)
+    #end define_cover_common
+
+    def define_material_common(name, hsv_colour, use_node_group) :
         material = bpy.data.materials.new(name)
         rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
         material.diffuse_color = rgb_colour
@@ -1241,53 +1279,40 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
           # clear out default nodes
             material_tree.nodes.remove(node)
         #end for
-        colour_shader = material_tree.nodes.new("ShaderNodeBsdfDiffuse")
+        colour_node = material_tree.nodes.new("ShaderNodeRGB")
+        colour_node.location = (-200, 0)
+        colour_node.outputs[0].default_value = rgb_colour + (1,)
+        if use_node_group != None :
+            colour_shader = material_tree.nodes.new("ShaderNodeGroup")
+            colour_shader.node_tree = use_node_group
+        else :
+            colour_shader = material_tree.nodes.new("ShaderNodeBsdfDiffuse")
+        #end if
         colour_shader.location = (0, 0)
-        colour_shader.inputs[0].default_value = rgb_colour + (1,)
         material_output = material_tree.nodes.new("ShaderNodeOutputMaterial")
-        return \
-            material, material_tree, colour_shader, material_output
-    #end define_material_common
-
-    def deselect_all(material_tree) :
-        for node in material_tree.nodes :
-            node.select = False
-        #end for
-    #end deselect_all
-
-    def define_diffuse_material(name, hsv_colour) :
-        material, material_tree, colour_shader, material_output = \
-            define_material_common(name, hsv_colour)
         material_output.location = (200, 0)
+        material_tree.links.new(colour_node.outputs[0], colour_shader.inputs[0])
         material_tree.links.new(colour_shader.outputs[0], material_output.inputs[0])
         deselect_all(material_tree)
         return \
             material
+    #end define_material_common
+
+    def define_diffuse_material(name, hsv_colour) :
+        return \
+            define_material_common(name, hsv_colour, None)
     #end define_diffuse_material
 
     def define_cover_material(name, hsv_colour) :
-        material, material_tree, colour_shader, material_output = \
-            define_material_common(name, hsv_colour)
-        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
-        gloss = 0.25
-        material_output.location = (400, 0)
-        gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
-        gloss_shader.location = (0, -150)
-        mix_shader = material_tree.nodes.new("ShaderNodeMixShader")
-        mix_shader.location = (200, 0)
-        material_tree.links.new(colour_shader.outputs[0], mix_shader.inputs[1])
-        material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
-        mix_shader.inputs[0].default_value = gloss
-        material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
-        deselect_all(material_tree)
         return \
-            material
+            define_material_common(name, hsv_colour, cover_common)
     #end define_cover_material
 
 #begin define_book_materials
     if use_materials_from_active :
         active_obj = context.scene.objects.active
         if active_obj == None or active_obj.material_slots == None or len(active_obj.material_slots) < 2 :
+            use_materials_from_active = False
             raise Failure("active object must have at least 2 materials attached")
         #end if
         material_slots = active_obj.material_slots
@@ -1304,6 +1329,7 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
         base_cover_colour = (0.96, 0.68, 0.5)
         book_cover = []
         materials["books_cover"] = book_cover
+        define_cover_common()
         for i in range(nr_colours) :
             hue = (base_cover_colour[0] + i / nr_colours) % 1.0
             book_cover.append \
