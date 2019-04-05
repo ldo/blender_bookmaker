@@ -2,7 +2,8 @@
 # Blender add-on to generate a random row or stack of books.
 #
 # Copyright 2019 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
-# Licensed under CC-BY-SA <http://creativecommons.org/licenses/by-sa/4.0/>.
+# Licensed (except meshes) under CC-BY-SA
+# <http://creativecommons.org/licenses/by-sa/4.0/>.
 #-
 
 import sys
@@ -46,6 +47,8 @@ class Failure(Exception) :
 
 #+
 # Book meshes and materials
+# These are licensed CC0
+# <https://creativecommons.org/publicdomain/zero/1.0/>.
 #-
 
 book_meshes = \
