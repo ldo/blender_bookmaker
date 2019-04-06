@@ -20,7 +20,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 2, 0),
+        "version" : (1, 2, 1),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh",
         "description" :
@@ -1670,6 +1670,7 @@ class BookmakerRow(bpy.types.Operator) :
             bpy.ops.object.select_all(action = "DESELECT")
             materials = None
             prev_rotate = None
+            prev_width = 0
             for j in range(self.count) :
                 if materials == None :
                     materials = define_book_materials \
@@ -1686,7 +1687,7 @@ class BookmakerRow(bpy.types.Operator) :
                 else :
                     rotate = prev_rotate
                 #end if
-                rotation_displacement = height * math.sin(rotate)
+                rotation_displacement = height * math.sin(rotate) - prev_width * (1 - math.cos(rotate))
                 gap = self.width * (10 ** ((2 * random.random() - 1) * self.gap_var / 10) - 1)
                 x_disp_delta = rotation_displacement - prev_rotation_displacement
                 z_disp_delta = max(width * math.sin(rotate), 0)
@@ -1708,6 +1709,7 @@ class BookmakerRow(bpy.types.Operator) :
                     )
                 pos += Vector((width + gap + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
                 prev_rotation_displacement = rotation_displacement
+                prev_width = width
             #end for
             # all done
             status = {"FINISHED"}
