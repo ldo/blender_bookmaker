@@ -20,7 +20,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 1, 2),
+        "version" : (1, 2, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh",
         "description" :
@@ -1619,6 +1619,14 @@ class BookmakerRow(bpy.types.Operator) :
         default = 0,
         subtype = "ANGLE"
       )
+    rotate_clump_var = bpy.props.FloatProperty \
+      (
+        name = "rotate_clump",
+        description = "how often to keep same rotation angle",
+        min = 0,
+        max = 1,
+        default = 0.5,
+      )
     ranseed = bpy.props.IntProperty \
       (
         name = "ranseed",
@@ -1642,6 +1650,7 @@ class BookmakerRow(bpy.types.Operator) :
         the_col.prop(self, "height_var", "Height Variation")
         the_col.prop(self, "gap_var", "Gap")
         the_col.prop(self, "rotate_var", "Rotate Variation")
+        the_col.prop(self, "rotate_clump_var", "Rotation Clumping")
         the_col.prop(self, "ranseed", "Random Seed")
     #end draw
 
@@ -1660,6 +1669,7 @@ class BookmakerRow(bpy.types.Operator) :
             prev_rotation_displacement = 0
             bpy.ops.object.select_all(action = "DESELECT")
             materials = None
+            prev_rotate = None
             for j in range(self.count) :
                 if materials == None :
                     materials = define_book_materials \
@@ -1670,7 +1680,12 @@ class BookmakerRow(bpy.types.Operator) :
                       )
                 #end if
                 new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
-                rotate = (2 * random.random() - 1) * self.rotate_var
+                if prev_rotate == None or random.random() >= self.rotate_clump_var :
+                    rotate = (2 * random.random() - 1) * self.rotate_var
+                    prev_rotate = rotate
+                else :
+                    rotate = prev_rotate
+                #end if
                 rotation_displacement = height * math.sin(rotate)
                 gap = self.width * (10 ** ((2 * random.random() - 1) * self.gap_var / 10) - 1)
                 x_disp_delta = rotation_displacement - prev_rotation_displacement
