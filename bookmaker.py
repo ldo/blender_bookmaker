@@ -20,7 +20,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 2, 1),
+        "version" : (1, 2, 2),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh",
         "description" :
@@ -1268,8 +1268,8 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
         material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
         mix_shader.inputs[0].default_value = gloss
         material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
-        material_tree.inputs[0].name = "Colour"
-        material_tree.outputs[0].name = "Shader"
+        material_tree.inputs.new("RGBA", "Colour")
+        material_tree.outputs.new("SHADER", "Shader")
         deselect_all(material_tree)
     #end define_cover_common
 
