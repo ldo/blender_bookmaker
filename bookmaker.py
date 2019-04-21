@@ -8,7 +8,8 @@
 
 import sys
 import math
-import random
+from random import \
+    Random
 import colorsys
 import bpy
 import bpy.utils.previews
@@ -20,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 2, 2),
+        "version" : (1, 3, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh",
         "description" :
@@ -1462,15 +1463,15 @@ dimensions_min = \
     )
 dimension_defaults = tuple(v[1] - v[0] for v in book_meshes["hardcover"]["bounds"])
 
-def generate_book(self, context, pos, materials, j) :
-    if random.random() < self.hardcover_frac :
+def generate_book(self, geom_random, material_random, context, pos, materials, j) :
+    if geom_random.random() < self.hardcover_frac :
         book_mesh = book_meshes["hardcover"]
     else :
         book_mesh = book_meshes["softcover"]
     #end if
-    width = max(self.width * 10 ** ((2 * random.random() - 1) * self.width_var / 10), dimensions_min[0])
-    depth = max(self.depth * 10 ** ((2 * random.random() - 1) * self.depth_var / 10), dimensions_min[1])
-    height = max(self.height * 10 ** ((2 * random.random() - 1) * self.height_var / 10), dimensions_min[2])
+    width = max(self.width * 10 ** ((2 * geom_random.random() - 1) * self.width_var / 10), dimensions_min[0])
+    depth = max(self.depth * 10 ** ((2 * geom_random.random() - 1) * self.depth_var / 10), dimensions_min[1])
+    height = max(self.height * 10 ** ((2 * geom_random.random() - 1) * self.height_var / 10), dimensions_min[2])
     vertices = []
     bounds = book_mesh["bounds"]
     for i in range(len(book_mesh["vertices"])) :
@@ -1495,7 +1496,7 @@ def generate_book(self, context, pos, materials, j) :
     new_mesh = bpy.data.meshes.new(new_mesh_name)
     new_mesh_name = new_mesh.name
     new_mesh.materials.append(materials["books_paper"])
-    new_mesh.materials.append(random.choice(materials["books_cover"]))
+    new_mesh.materials.append(material_random.choice(materials["books_cover"]))
     new_mesh.from_pydata(vertices, [], book_mesh["faces"])
     for i in range(len(book_mesh["faces"])) :
         p = new_mesh.polygons[i]
@@ -1627,10 +1628,17 @@ class BookmakerRow(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    ranseed = bpy.props.IntProperty \
+    geom_ranseed = bpy.props.IntProperty \
       (
         name = "ranseed",
-        description = "Pseudorandom seed",
+        description = "Pseudorandom seed for geometry",
+        min = 0,
+        default = 0,
+      )
+    mtrl_ranseed = bpy.props.IntProperty \
+      (
+        name = "ranseed",
+        description = "Pseudorandom seed for materials",
         min = 0,
         default = 0,
       )
@@ -1651,7 +1659,8 @@ class BookmakerRow(bpy.types.Operator) :
         the_col.prop(self, "gap_var", "Gap")
         the_col.prop(self, "rotate_var", "Rotate Variation")
         the_col.prop(self, "rotate_clump_var", "Rotation Clumping")
-        the_col.prop(self, "ranseed", "Random Seed")
+        the_col.prop(self, "geom_ranseed", "Random Seed for Geometry")
+        the_col.prop(self, "mtrl_ranseed", "Random Seed for Materials")
     #end draw
 
     def action_common(self, context, redoing) :
@@ -1665,7 +1674,8 @@ class BookmakerRow(bpy.types.Operator) :
                 pos = context.scene.cursor_location.copy()
                 self.position = pos.copy()
             #end if
-            random.seed(self.ranseed)
+            geom_random = Random(self.geom_ranseed)
+            material_random = Random(self.mtrl_ranseed)
             prev_rotation_displacement = 0
             bpy.ops.object.select_all(action = "DESELECT")
             materials = None
@@ -1680,15 +1690,15 @@ class BookmakerRow(bpy.types.Operator) :
                         self.use_materials_from_active
                       )
                 #end if
-                new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
-                if prev_rotate == None or random.random() >= self.rotate_clump_var :
-                    rotate = (2 * random.random() - 1) * self.rotate_var
+                new_obj, width, depth, height = generate_book(self, geom_random, material_random, context, pos, materials, j)
+                if prev_rotate == None or geom_random.random() >= self.rotate_clump_var :
+                    rotate = (2 * geom_random.random() - 1) * self.rotate_var
                     prev_rotate = rotate
                 else :
                     rotate = prev_rotate
                 #end if
                 rotation_displacement = height * math.sin(rotate) - prev_width * (1 - math.cos(rotate))
-                gap = self.width * (10 ** ((2 * random.random() - 1) * self.gap_var / 10) - 1)
+                gap = self.width * (10 ** ((2 * geom_random.random() - 1) * self.gap_var / 10) - 1)
                 x_disp_delta = rotation_displacement - prev_rotation_displacement
                 z_disp_delta = max(width * math.sin(rotate), 0)
                 new_obj.matrix_basis = \
@@ -1827,10 +1837,17 @@ class BookmakerStack(bpy.types.Operator) :
         default = 0,
         subtype = "ANGLE"
       )
-    ranseed = bpy.props.IntProperty \
+    geom_ranseed = bpy.props.IntProperty \
       (
         name = "ranseed",
-        description = "Pseudorandom seed",
+        description = "Pseudorandom seed for geometry",
+        min = 0,
+        default = 0,
+      )
+    mtrl_ranseed = bpy.props.IntProperty \
+      (
+        name = "ranseed",
+        description = "Pseudorandom seed for materials",
         min = 0,
         default = 0,
       )
@@ -1849,7 +1866,8 @@ class BookmakerStack(bpy.types.Operator) :
         the_col.prop(self, "height", "Height")
         the_col.prop(self, "height_var", "Height Variation")
         the_col.prop(self, "rotate_var", "Rotate Variation")
-        the_col.prop(self, "ranseed", "Random Seed")
+        the_col.prop(self, "geom_ranseed", "Random Seed for Geometry")
+        the_col.prop(self, "mtrl_ranseed", "Random Seed for Materials")
     #end draw
 
     def action_common(self, context, redoing) :
@@ -1863,7 +1881,8 @@ class BookmakerStack(bpy.types.Operator) :
                 pos = context.scene.cursor_location.copy()
                 self.position = pos.copy()
             #end if
-            random.seed(self.ranseed)
+            geom_random = Random(self.geom_ranseed)
+            material_random = Random(self.mtrl_ranseed)
             materials = None
             prev_depth = prev_height = None
             for j in range(self.count) :
@@ -1875,12 +1894,12 @@ class BookmakerStack(bpy.types.Operator) :
                         self.use_materials_from_active
                       )
                 #end if
-                new_obj, width, depth, height = generate_book(self, context, pos, materials, j)
-                rotate = (2 * random.random() - 1) * self.rotate_var
+                new_obj, width, depth, height = generate_book(self, geom_random, material_random, context, pos, materials, j)
+                rotate = (2 * geom_random.random() - 1) * self.rotate_var
                 delta_pos = [0, 0, 0]
                 if prev_depth != None : # <=> prev_height != None
-                    delta_pos[0] = random.random() * (prev_height - height)
-                    delta_pos[1] = random.random() * (prev_depth - depth)
+                    delta_pos[0] = geom_random.random() * (prev_height - height)
+                    delta_pos[1] = geom_random.random() * (prev_depth - depth)
                 #end if
                 new_obj.matrix_basis = \
                     (
