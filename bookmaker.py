@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 3, 1),
+        "version" : (1, 4, 0),
         "blender" : (2, 7, 9),
         "location" : "Add > Mesh",
         "description" :
@@ -1232,6 +1232,383 @@ book_meshes = \
                             },
                     },
             }, # softcover
+
+        "magazine" :
+            {
+                "vertices" :
+                    [
+                        (-0.03333333, -0.6978451, -0.1),
+                        (-0.03333333, -0.6978451, 0.1),
+                        (0.03333333, -0.6978451, -0.1),
+                        (0.03333333, -0.6978451, 0.1),
+                        (-0.03333333, -0.8211168, -0.1),
+                        (-0.03333333, -0.8211168, 0.1),
+                        (0.03333333, -0.8211168, -0.1),
+                        (0.03333333, -0.8211168, 0.1),
+                        (0.03248472, -0.6978451, -0.1),
+                        (-0.03248472, -0.6978451, -0.1),
+                        (-0.03248472, -0.6978451, 0.1),
+                        (0.03248472, -0.6978451, 0.1),
+                        (-0.03248472, -0.8224286, -0.1),
+                        (0.03248472, -0.8224286, -0.1),
+                        (0.03248472, -0.8224286, 0.1),
+                        (-0.03248472, -0.8224286, 0.1),
+                        (-0.03248472, -0.8215357, 0.1),
+                        (0.03248472, -0.8215357, 0.1),
+                        (0.03248472, -0.8215357, -0.1),
+                        (-0.03248472, -0.8215357, -0.1),
+                        (-0.03276896, -0.8224286, -0.1),
+                        (-0.03333333, -0.8212999, -0.1),
+                        (-0.03316803, -0.822098, -0.1),
+                        (-0.03333333, -0.8212999, 0.1),
+                        (-0.03276896, -0.8224286, 0.1),
+                        (-0.03316803, -0.822098, 0.1),
+                        (0.03333333, -0.8212999, -0.1),
+                        (0.03276896, -0.8224286, -0.1),
+                        (0.03316803, -0.822098, -0.1),
+                        (0.03276896, -0.8224286, 0.1),
+                        (0.03333333, -0.8212999, 0.1),
+                        (0.03316803, -0.822098, 0.1),
+                        (0.02779153, -0.6978451, -0.1),
+                        (0.01389577, -0.6978451, -0.1),
+                        (1.051124e-09, -0.6978451, -0.1),
+                        (-0.01389576, -0.6978451, -0.1),
+                        (-0.02779153, -0.6978451, -0.1),
+                        (-0.02779153, -0.6978451, 0.1),
+                        (-0.01389576, -0.6978451, 0.1),
+                        (3.817603e-09, -0.6978451, 0.1),
+                        (0.01389579, -0.6978451, 0.1),
+                        (0.02779153, -0.6978451, 0.1),
+                        (-0.02779153, -0.8300433, -0.1),
+                        (-0.01389576, -0.8335814, -0.1),
+                        (3.817603e-09, -0.8348355, -0.1),
+                        (0.01389579, -0.8335814, -0.1),
+                        (0.02779153, -0.8300433, -0.1),
+                        (0.02779153, -0.8300433, 0.1),
+                        (0.01389577, -0.8335814, 0.1),
+                        (1.051124e-09, -0.8348355, 0.1),
+                        (-0.01389576, -0.8335814, 0.1),
+                        (-0.02779153, -0.8300433, 0.1),
+                        (-0.02779153, -0.8288416, 0.1),
+                        (-0.01389576, -0.8326875, 0.1),
+                        (2.791053e-09, -0.8339427, 0.1),
+                        (0.01389578, -0.8326875, 0.1),
+                        (0.02779153, -0.8288416, 0.1),
+                        (0.02779153, -0.8288416, -0.1),
+                        (0.01389577, -0.8326875, -0.1),
+                        (2.077675e-09, -0.8339427, -0.1),
+                        (-0.01389576, -0.8326875, -0.1),
+                        (-0.02779153, -0.8288416, -0.1),
+                    ],
+
+                "bounds" :
+                    (
+                        (-0.03333333, 0.03333333),
+                        (-0.8348355, -0.6978451),
+                        (-0.1, 0.1),
+                    ),
+
+                "faces" :
+                    [
+                        [4, 5, 1, 0],
+                        [8, 11, 3, 2],
+                        [7, 17, 14, 29, 31, 30],
+                        [16, 5, 23, 25, 24, 15],
+                        [6, 7, 30, 26],
+                        [27, 29, 14, 13],
+                        [10, 1, 5, 16],
+                        [8, 2, 6, 18],
+                        [2, 3, 7, 6],
+                        [12, 15, 24, 20],
+                        [0, 9, 19, 4],
+                        [32, 8, 18, 57],
+                        [3, 11, 17, 7],
+                        [37, 10, 16, 52],
+                        [52, 16, 15, 51],
+                        [21, 23, 5, 4],
+                        [57, 18, 13, 46],
+                        [18, 6, 26, 28, 27, 13],
+                        [42, 51, 15, 12],
+                        [0, 1, 10, 9],
+                        [32, 41, 11, 8],
+                        [20, 24, 25, 22],
+                        [22, 25, 23, 21],
+                        [29, 27, 28, 31],
+                        [31, 28, 26, 30],
+                        [4, 19, 12, 20, 22, 21],
+                        [9, 10, 37, 36],
+                        [36, 37, 38, 35],
+                        [35, 38, 39, 34],
+                        [34, 39, 40, 33],
+                        [33, 40, 41, 32],
+                        [13, 14, 47, 46],
+                        [46, 47, 48, 45],
+                        [45, 48, 49, 44],
+                        [44, 49, 50, 43],
+                        [43, 50, 51, 42],
+                        [19, 61, 42, 12],
+                        [61, 60, 43, 42],
+                        [60, 59, 44, 43],
+                        [59, 58, 45, 44],
+                        [58, 57, 46, 45],
+                        [17, 56, 47, 14],
+                        [56, 55, 48, 47],
+                        [55, 54, 49, 48],
+                        [54, 53, 50, 49],
+                        [53, 52, 51, 50],
+                        [11, 41, 56, 17],
+                        [41, 40, 55, 56],
+                        [40, 39, 54, 55],
+                        [39, 38, 53, 54],
+                        [38, 37, 52, 53],
+                        [9, 36, 61, 19],
+                        [36, 35, 60, 61],
+                        [35, 34, 59, 60],
+                        [34, 33, 58, 59],
+                        [33, 32, 57, 58],
+                    ],
+
+                'back_vertices' :
+                    {
+                        0,
+                        1,
+                        2,
+                        3,
+                        8,
+                        9,
+                        10,
+                        11,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                    },
+                'bottom_vertices' :
+                    {
+                        0,
+                        2,
+                        4,
+                        6,
+                        8,
+                        9,
+                        12,
+                        13,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        26,
+                        27,
+                        28,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        57,
+                        58,
+                        59,
+                        60,
+                        61,
+                    },
+                'front_vertices' :
+                    {
+                        4,
+                        5,
+                        6,
+                        7,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47,
+                        48,
+                        49,
+                        50,
+                        51,
+                        52,
+                        53,
+                        54,
+                        55,
+                        56,
+                        57,
+                        58,
+                        59,
+                        60,
+                        61,
+                    },
+                'left_vertices' :
+                    {
+                        0,
+                        1,
+                        4,
+                        5,
+                        9,
+                        10,
+                        12,
+                        15,
+                        16,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                    },
+                'right_vertices' :
+                    {
+                        2,
+                        3,
+                        6,
+                        7,
+                        8,
+                        11,
+                        13,
+                        14,
+                        17,
+                        18,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                    },
+                'top_vertices' :
+                    {
+                        1,
+                        3,
+                        5,
+                        7,
+                        10,
+                        11,
+                        14,
+                        15,
+                        16,
+                        17,
+                        23,
+                        24,
+                        25,
+                        29,
+                        30,
+                        31,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        47,
+                        48,
+                        49,
+                        50,
+                        51,
+                        52,
+                        53,
+                        54,
+                        55,
+                        56,
+                    },
+
+                "face_materials" :
+                    {
+                        0 :
+                            {
+                                1,
+                                11,
+                                13,
+                                19,
+                                20,
+                                25,
+                                26,
+                                27,
+                                28,
+                                29,
+                                30,
+                                46,
+                                47,
+                                48,
+                                49,
+                                50,
+                                51,
+                                52,
+                                53,
+                                54,
+                                55,
+                            },
+                        1 :
+                            {
+                                0,
+                                2,
+                                3,
+                                4,
+                                5,
+                                6,
+                                7,
+                                8,
+                                9,
+                                10,
+                                12,
+                                14,
+                                15,
+                                16,
+                                17,
+                                18,
+                                21,
+                                22,
+                                23,
+                                24,
+                                31,
+                                32,
+                                33,
+                                34,
+                                35,
+                                36,
+                                37,
+                                38,
+                                39,
+                                40,
+                                41,
+                                42,
+                                43,
+                                44,
+                                45,
+                            },
+                    },
+            }, # magazine
     } # book_meshes
 
 def define_book_materials(context, nr_colours, use_materials_from_active) :
@@ -1464,11 +1841,27 @@ dimensions_min = \
 dimension_defaults = tuple(v[1] - v[0] for v in book_meshes["hardcover"]["bounds"])
 
 def generate_book(self, geom_random, material_random, context, pos, materials, j) :
-    if geom_random.random() < self.hardcover_frac :
-        book_mesh = book_meshes["hardcover"]
-    else :
-        book_mesh = book_meshes["softcover"]
-    #end if
+    choices = \
+        (
+            (self.hardcover_weight, "hardcover"),
+            (self.softcover_weight, "softcover"),
+            (self.magazine_weight, "magazine"),
+        )
+    total = sum(c[0] for c in choices)
+    choose = geom_random.random() * total
+    pick = -1
+    subtotal = 0
+    while True :
+        if pick >= 0 and choose < subtotal :
+            break
+        pick += 1
+        if pick == len(choices) :
+            pick = 0 # all weights were zero, just pick hardcover
+            break
+        #end if
+        subtotal += choices[pick][0]
+    #end while
+    book_mesh = book_meshes[choices[pick][1]]
     width = max(self.width * 10 ** ((2 * geom_random.random() - 1) * self.width_var / 10), dimensions_min[0])
     depth = max(self.depth * 10 ** ((2 * geom_random.random() - 1) * self.depth_var / 10), dimensions_min[1])
     height = max(self.height * 10 ** ((2 * geom_random.random() - 1) * self.height_var / 10), dimensions_min[2])
@@ -1533,10 +1926,26 @@ class BookmakerRow(bpy.types.Operator) :
         min = 1,
         default = 1,
       )
-    hardcover_frac = bpy.props.FloatProperty \
+    hardcover_weight = bpy.props.FloatProperty \
       (
-        name = "hardcover_frac",
-        description = "proportion of hardcover books",
+        name = "hardcover_weight",
+        description = "relative frequency of hardcover books",
+        min = 0,
+        max = 1,
+        default = 0.5,
+      )
+    softcover_weight = bpy.props.FloatProperty \
+      (
+        name = "softcover_weight",
+        description = "relative frequency of softcover books",
+        min = 0,
+        max = 1,
+        default = 0.5,
+      )
+    magazine_weight = bpy.props.FloatProperty \
+      (
+        name = "magazine_weight",
+        description = "relative frequency of magazines",
         min = 0,
         max = 1,
         default = 0.5,
@@ -1646,7 +2055,9 @@ class BookmakerRow(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count", "Nr Books")
-        the_col.prop(self, "hardcover_frac", "Proportion of Hardcover")
+        the_col.prop(self, "hardcover_weight", "Weight for Hardcover")
+        the_col.prop(self, "softcover_weight", "Weight for Softcover")
+        the_col.prop(self, "magazine_weight", "Weight for Magazines")
         the_col.prop(self, "nr_colours", "Nr Colours")
         the_col.prop(self, "use_materials_from_active", "Reuse Materials")
         the_col.prop(self, "position", "Position")
@@ -1758,10 +2169,26 @@ class BookmakerStack(bpy.types.Operator) :
         min = 1,
         default = 1,
       )
-    hardcover_frac = bpy.props.FloatProperty \
+    hardcover_weight = bpy.props.FloatProperty \
       (
-        name = "hardcover_frac",
-        description = "proportion of hardcover books",
+        name = "hardcover_weight",
+        description = "relative frequency of hardcover books",
+        min = 0,
+        max = 1,
+        default = 0.5,
+      )
+    softcover_weight = bpy.props.FloatProperty \
+      (
+        name = "softcover_weight",
+        description = "relative frequency of softcover books",
+        min = 0,
+        max = 1,
+        default = 0.5,
+      )
+    magazine_weight = bpy.props.FloatProperty \
+      (
+        name = "magazine_weight",
+        description = "relative frequency of magazines",
         min = 0,
         max = 1,
         default = 0.5,
@@ -1855,7 +2282,9 @@ class BookmakerStack(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count", "Nr Books")
-        the_col.prop(self, "hardcover_frac", "Proportion of Hardcover")
+        the_col.prop(self, "hardcover_weight", "Weight for Hardcover")
+        the_col.prop(self, "softcover_weight", "Weight for Softcover")
+        the_col.prop(self, "magazine_weight", "Weight for Magazines")
         the_col.prop(self, "nr_colours", "Nr Colours")
         the_col.prop(self, "use_materials_from_active", "Reuse Materials")
         the_col.prop(self, "position", "Position")
