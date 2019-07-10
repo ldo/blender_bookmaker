@@ -21,8 +21,8 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 4, 0),
-        "blender" : (2, 7, 9),
+        "version" : (1, 4, 1),
+        "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
             "generates a row or stack of book objects with randomly-distributed parameters.",
@@ -1653,7 +1653,7 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
 
     def define_material_common(name, hsv_colour, use_node_group) :
         material = bpy.data.materials.new(name)
-        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour)
+        rgb_colour = colorsys.hsv_to_rgb(*hsv_colour) + (1,)
         material.diffuse_color = rgb_colour
         material.use_nodes = True
         material_tree = material.node_tree
@@ -1663,7 +1663,7 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
         #end for
         colour_node = material_tree.nodes.new("ShaderNodeRGB")
         colour_node.location = (-200, 0)
-        colour_node.outputs[0].default_value = rgb_colour + (1,)
+        colour_node.outputs[0].default_value = rgb_colour
         if use_node_group != None :
             colour_shader = material_tree.nodes.new("ShaderNodeGroup")
             colour_shader.node_tree = use_node_group
@@ -1692,7 +1692,7 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
 
 #begin define_book_materials
     if use_materials_from_active :
-        active_obj = context.scene.objects.active
+        active_obj = context.view_layer.objects.active
         if active_obj == None or active_obj.material_slots == None or len(active_obj.material_slots) < 2 :
             use_materials_from_active = False
             raise Failure("active object must have at least 2 materials attached")
@@ -1902,9 +1902,9 @@ def generate_book(self, geom_random, material_random, context, pos, materials, j
     new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
     new_obj_name = new_obj.name
     new_obj.matrix_basis = Matrix.Translation(pos)
-    context.scene.objects.link(new_obj)
-    bpy.data.objects[new_obj_name].select = True
-    context.scene.objects.active = new_obj
+    context.scene.collection.objects.link(new_obj)
+    bpy.data.objects[new_obj_name].select_set(True)
+    context.view_layer.objects.active = new_obj
     for this_vertex in new_mesh.vertices :
         this_vertex.select = True # usual Blender default for newly-created object
     #end for
@@ -2054,35 +2054,32 @@ class BookmakerRow(bpy.types.Operator) :
 
     def draw(self, context) :
         the_col = self.layout.column(align = True)
-        the_col.prop(self, "count", "Nr Books")
-        the_col.prop(self, "hardcover_weight", "Weight for Hardcover")
-        the_col.prop(self, "softcover_weight", "Weight for Softcover")
-        the_col.prop(self, "magazine_weight", "Weight for Magazines")
-        the_col.prop(self, "nr_colours", "Nr Colours")
-        the_col.prop(self, "use_materials_from_active", "Reuse Materials")
-        the_col.prop(self, "position", "Position")
-        the_col.prop(self, "width", "Width")
-        the_col.prop(self, "width_var", "Width Variation")
-        the_col.prop(self, "depth", "Depth")
-        the_col.prop(self, "depth_var", "Depth Variation")
-        the_col.prop(self, "height", "Height")
-        the_col.prop(self, "height_var", "Height Variation")
-        the_col.prop(self, "gap_var", "Gap")
-        the_col.prop(self, "rotate_var", "Rotate Variation")
-        the_col.prop(self, "rotate_clump_var", "Rotation Clumping")
-        the_col.prop(self, "geom_ranseed", "Random Seed for Geometry")
-        the_col.prop(self, "mtrl_ranseed", "Random Seed for Materials")
+        the_col.prop(self, "count", text = "Nr Books")
+        the_col.prop(self, "hardcover_weight", text = "Weight for Hardcover")
+        the_col.prop(self, "softcover_weight", text = "Weight for Softcover")
+        the_col.prop(self, "magazine_weight", text = "Weight for Magazines")
+        the_col.prop(self, "nr_colours", text = "Nr Colours")
+        the_col.prop(self, "use_materials_from_active", text = "Reuse Materials")
+        the_col.prop(self, "position", text = "Position")
+        the_col.prop(self, "width", text = "Width")
+        the_col.prop(self, "width_var", text = "Width Variation")
+        the_col.prop(self, "depth", text = "Depth")
+        the_col.prop(self, "depth_var", text = "Depth Variation")
+        the_col.prop(self, "height", text = "Height")
+        the_col.prop(self, "height_var", text = "Height Variation")
+        the_col.prop(self, "gap_var", text = "Gap")
+        the_col.prop(self, "rotate_var", text = "Rotate Variation")
+        the_col.prop(self, "rotate_clump_var", text = "Rotation Clumping")
+        the_col.prop(self, "geom_ranseed", text = "Random Seed for Geometry")
+        the_col.prop(self, "mtrl_ranseed", text = "Random Seed for Materials")
     #end draw
 
     def action_common(self, context, redoing) :
         try :
-            if context.scene.render.engine != "CYCLES" :
-                raise Failure("Only Cycles renderer is supported")
-            #end if
             if redoing :
                 pos = Vector(tuple(self.position))
             else :
-                pos = context.scene.cursor_location.copy()
+                pos = context.scene.cursor.location.copy()
                 self.position = pos.copy()
             #end if
             geom_random = Random(self.geom_ranseed)
@@ -2118,14 +2115,14 @@ class BookmakerRow(bpy.types.Operator) :
                           (
                             Vector(((0, - x_disp_delta)[x_disp_delta < 0], 0, z_disp_delta))
                           )
-                    *
+                    @
                         Matrix.Translation
                           (
                             Vector((gap, 0, 0))
                           )
-                    *
+                    @
                         new_obj.matrix_basis
-                    *
+                    @
                         Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
                     )
                 pos += Vector((width + gap + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
@@ -2281,33 +2278,30 @@ class BookmakerStack(bpy.types.Operator) :
 
     def draw(self, context) :
         the_col = self.layout.column(align = True)
-        the_col.prop(self, "count", "Nr Books")
-        the_col.prop(self, "hardcover_weight", "Weight for Hardcover")
-        the_col.prop(self, "softcover_weight", "Weight for Softcover")
-        the_col.prop(self, "magazine_weight", "Weight for Magazines")
-        the_col.prop(self, "nr_colours", "Nr Colours")
-        the_col.prop(self, "use_materials_from_active", "Reuse Materials")
-        the_col.prop(self, "position", "Position")
-        the_col.prop(self, "width", "Width")
-        the_col.prop(self, "width_var", "Width Variation")
-        the_col.prop(self, "depth", "Depth")
-        the_col.prop(self, "depth_var", "Depth Variation")
-        the_col.prop(self, "height", "Height")
-        the_col.prop(self, "height_var", "Height Variation")
-        the_col.prop(self, "rotate_var", "Rotate Variation")
-        the_col.prop(self, "geom_ranseed", "Random Seed for Geometry")
-        the_col.prop(self, "mtrl_ranseed", "Random Seed for Materials")
+        the_col.prop(self, "count", text = "Nr Books")
+        the_col.prop(self, "hardcover_weight", text = "Weight for Hardcover")
+        the_col.prop(self, "softcover_weight", text = "Weight for Softcover")
+        the_col.prop(self, "magazine_weight", text = "Weight for Magazines")
+        the_col.prop(self, "nr_colours", text = "Nr Colours")
+        the_col.prop(self, "use_materials_from_active", text = "Reuse Materials")
+        the_col.prop(self, "position", text = "Position")
+        the_col.prop(self, "width", text = "Width")
+        the_col.prop(self, "width_var", text = "Width Variation")
+        the_col.prop(self, "depth", text = "Depth")
+        the_col.prop(self, "depth_var", text = "Depth Variation")
+        the_col.prop(self, "height", text = "Height")
+        the_col.prop(self, "height_var", text = "Height Variation")
+        the_col.prop(self, "rotate_var", text = "Rotate Variation")
+        the_col.prop(self, "geom_ranseed", text = "Random Seed for Geometry")
+        the_col.prop(self, "mtrl_ranseed", text = "Random Seed for Materials")
     #end draw
 
     def action_common(self, context, redoing) :
         try :
-            if context.scene.render.engine != "CYCLES" :
-                raise Failure("Only Cycles renderer is supported")
-            #end if
             if redoing :
                 pos = Vector(tuple(self.position))
             else :
-                pos = context.scene.cursor_location.copy()
+                pos = context.scene.cursor.location.copy()
                 self.position = pos.copy()
             #end if
             geom_random = Random(self.geom_ranseed)
@@ -2333,15 +2327,15 @@ class BookmakerStack(bpy.types.Operator) :
                 new_obj.matrix_basis = \
                     (
                         new_obj.matrix_basis
-                    *
+                    @
                         Matrix.Translation(Vector((- height / 2, depth / 2, 0)))
-                    *
+                    @
                         Matrix.Rotation(rotate, 4, Vector((0, 0, 1)))
-                    *
+                    @
                         Matrix.Translation(Vector((height / 2, - depth / 2, 0)))
-                    *
+                    @
                         Matrix.Translation(delta_pos)
-                    *
+                    @
                         Matrix.Rotation(- 90 * deg, 4, Vector((0, 1, 0)))
                     )
                 prev_depth = depth
@@ -2376,6 +2370,12 @@ def add_invoke_item(self, context) :
     self.layout.operator(BookmakerStack.bl_idname, text = "Books Stack", icon_value = icons["stack"].icon_id)
 #end add_invoke_item
 
+_classes_ = \
+    (
+        BookmakerRow,
+        BookmakerStack,
+    )
+
 def register() :
     global icons
     if icons == None :
@@ -2386,14 +2386,18 @@ def register() :
             icon.icon_pixels = icon_pixels[name]
         #end for
     #end if
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(add_invoke_item)
+    for ċlass in _classes_ :
+        bpy.utils.register_class(ċlass)
+    #end for
+    bpy.types.VIEW3D_MT_mesh_add.append(add_invoke_item)
 #end register
 
 def unregister() :
     global icons
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_mesh_add.remove(add_invoke_item)
+    for ċlass in _classes_ :
+        bpy.utils.unregister_class(ċlass)
+    #end for
+    bpy.types.VIEW3D_MT_mesh_add.remove(add_invoke_item)
     if icons != None :
         bpy.utils.previews.remove(icons)
         icons = None
