@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 4, 1),
+        "version" : (1, 4, 2),
         "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -1919,14 +1919,14 @@ class BookmakerRow(bpy.types.Operator) :
     bl_context = "objectmode"
     bl_options = {"REGISTER", "UNDO"}
 
-    count = bpy.props.IntProperty \
+    count : bpy.props.IntProperty \
       (
         name = "count",
         description = "How many books to generate",
         min = 1,
         default = 1,
       )
-    hardcover_weight = bpy.props.FloatProperty \
+    hardcover_weight : bpy.props.FloatProperty \
       (
         name = "hardcover_weight",
         description = "relative frequency of hardcover books",
@@ -1934,7 +1934,7 @@ class BookmakerRow(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    softcover_weight = bpy.props.FloatProperty \
+    softcover_weight : bpy.props.FloatProperty \
       (
         name = "softcover_weight",
         description = "relative frequency of softcover books",
@@ -1942,7 +1942,7 @@ class BookmakerRow(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    magazine_weight = bpy.props.FloatProperty \
+    magazine_weight : bpy.props.FloatProperty \
       (
         name = "magazine_weight",
         description = "relative frequency of magazines",
@@ -1950,31 +1950,31 @@ class BookmakerRow(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    nr_colours = bpy.props.IntProperty \
+    nr_colours : bpy.props.IntProperty \
       (
         name = "nr_colours",
         description = "How many different cover colours to give them",
         min = 1,
         default = 1,
       )
-    use_materials_from_active = bpy.props.BoolProperty \
+    use_materials_from_active : bpy.props.BoolProperty \
       (
         name = "use_materials_from_active",
         description = "reuse materials from active object (need at least 2 materials)",
       )
-    position = bpy.props.FloatVectorProperty \
+    position : bpy.props.FloatVectorProperty \
       (
         name = "position",
         description = "where to position the books (initially at the 3D cursor)",
       )
-    width = bpy.props.FloatProperty \
+    width : bpy.props.FloatProperty \
       (
         name = "width",
         description = "base width of one book",
         min = dimensions_min[0],
         default = dimension_defaults[0],
       )
-    width_var = bpy.props.FloatProperty \
+    width_var : bpy.props.FloatProperty \
       (
         name = "width_var",
         description = "variation in width (logarithmic)",
@@ -1982,14 +1982,14 @@ class BookmakerRow(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    depth = bpy.props.FloatProperty \
+    depth : bpy.props.FloatProperty \
       (
         name = "depth",
         description = "base depth of one book",
         min = dimensions_min[1],
         default = dimension_defaults[1],
       )
-    depth_var = bpy.props.FloatProperty \
+    depth_var : bpy.props.FloatProperty \
       (
         name = "depth_var",
         description = "variation in depth (logarithmic)",
@@ -1997,14 +1997,14 @@ class BookmakerRow(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    height = bpy.props.FloatProperty \
+    height : bpy.props.FloatProperty \
       (
         name = "height",
         description = "base height of one book",
         min = dimensions_min[2],
         default = dimension_defaults[2],
       )
-    height_var = bpy.props.FloatProperty \
+    height_var : bpy.props.FloatProperty \
       (
         name = "height_var",
         description = "variation in height (logarithmic)",
@@ -2012,7 +2012,7 @@ class BookmakerRow(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    gap_var = bpy.props.FloatProperty \
+    gap_var : bpy.props.FloatProperty \
       (
         name = "gap_var",
         description = "variation in gap between books (logarithmic)",
@@ -2020,7 +2020,7 @@ class BookmakerRow(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    rotate_var = bpy.props.FloatProperty \
+    rotate_var : bpy.props.FloatProperty \
       (
         name = "rotate_var",
         description = "variation in rotation angle",
@@ -2029,7 +2029,7 @@ class BookmakerRow(bpy.types.Operator) :
         default = 0,
         subtype = "ANGLE"
       )
-    rotate_clump_var = bpy.props.FloatProperty \
+    rotate_clump_var : bpy.props.FloatProperty \
       (
         name = "rotate_clump",
         description = "how often to keep same rotation angle",
@@ -2037,14 +2037,14 @@ class BookmakerRow(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    geom_ranseed = bpy.props.IntProperty \
+    geom_ranseed : bpy.props.IntProperty \
       (
         name = "ranseed",
         description = "Pseudorandom seed for geometry",
         min = 0,
         default = 0,
       )
-    mtrl_ranseed = bpy.props.IntProperty \
+    mtrl_ranseed : bpy.props.IntProperty \
       (
         name = "ranseed",
         description = "Pseudorandom seed for materials",
@@ -2159,14 +2159,14 @@ class BookmakerStack(bpy.types.Operator) :
     bl_context = "objectmode"
     bl_options = {"REGISTER", "UNDO"}
 
-    count = bpy.props.IntProperty \
+    count : bpy.props.IntProperty \
       (
         name = "count",
         description = "How many books to generate",
         min = 1,
         default = 1,
       )
-    hardcover_weight = bpy.props.FloatProperty \
+    hardcover_weight : bpy.props.FloatProperty \
       (
         name = "hardcover_weight",
         description = "relative frequency of hardcover books",
@@ -2174,7 +2174,7 @@ class BookmakerStack(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    softcover_weight = bpy.props.FloatProperty \
+    softcover_weight : bpy.props.FloatProperty \
       (
         name = "softcover_weight",
         description = "relative frequency of softcover books",
@@ -2182,7 +2182,7 @@ class BookmakerStack(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    magazine_weight = bpy.props.FloatProperty \
+    magazine_weight : bpy.props.FloatProperty \
       (
         name = "magazine_weight",
         description = "relative frequency of magazines",
@@ -2190,31 +2190,31 @@ class BookmakerStack(bpy.types.Operator) :
         max = 1,
         default = 0.5,
       )
-    nr_colours = bpy.props.IntProperty \
+    nr_colours : bpy.props.IntProperty \
       (
         name = "nr_colours",
         description = "How many different cover colours to give them",
         min = 1,
         default = 1,
       )
-    use_materials_from_active = bpy.props.BoolProperty \
+    use_materials_from_active : bpy.props.BoolProperty \
       (
         name = "use_materials_from_active",
         description = "reuse materials from active object (need at least 2 materials)",
       )
-    position = bpy.props.FloatVectorProperty \
+    position : bpy.props.FloatVectorProperty \
       (
         name = "position",
         description = "where to position the books (initially at the 3D cursor)",
       )
-    width = bpy.props.FloatProperty \
+    width : bpy.props.FloatProperty \
       (
         name = "width",
         description = "base width of one book",
         min = dimensions_min[0],
         default = dimension_defaults[0],
       )
-    width_var = bpy.props.FloatProperty \
+    width_var : bpy.props.FloatProperty \
       (
         name = "width_var",
         description = "variation in width (logarithmic)",
@@ -2222,14 +2222,14 @@ class BookmakerStack(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    depth = bpy.props.FloatProperty \
+    depth : bpy.props.FloatProperty \
       (
         name = "depth",
         description = "base depth of one book",
         min = dimensions_min[1],
         default = dimension_defaults[1],
       )
-    depth_var = bpy.props.FloatProperty \
+    depth_var : bpy.props.FloatProperty \
       (
         name = "depth_var",
         description = "variation in depth (logarithmic)",
@@ -2237,14 +2237,14 @@ class BookmakerStack(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    height = bpy.props.FloatProperty \
+    height : bpy.props.FloatProperty \
       (
         name = "height",
         description = "base height of one book",
         min = dimensions_min[2],
         default = dimension_defaults[2],
       )
-    height_var = bpy.props.FloatProperty \
+    height_var : bpy.props.FloatProperty \
       (
         name = "height_var",
         description = "variation in height (logarithmic)",
@@ -2252,7 +2252,7 @@ class BookmakerStack(bpy.types.Operator) :
         max = 10,
         default = 0,
       )
-    rotate_var = bpy.props.FloatProperty \
+    rotate_var : bpy.props.FloatProperty \
       (
         name = "rotate_var",
         description = "variation in rotation angle",
@@ -2261,14 +2261,14 @@ class BookmakerStack(bpy.types.Operator) :
         default = 0,
         subtype = "ANGLE"
       )
-    geom_ranseed = bpy.props.IntProperty \
+    geom_ranseed : bpy.props.IntProperty \
       (
         name = "ranseed",
         description = "Pseudorandom seed for geometry",
         min = 0,
         default = 0,
       )
-    mtrl_ranseed = bpy.props.IntProperty \
+    mtrl_ranseed : bpy.props.IntProperty \
       (
         name = "ranseed",
         description = "Pseudorandom seed for materials",
