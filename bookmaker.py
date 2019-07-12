@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 4, 2),
+        "version" : (1, 5, 0),
         "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -1926,6 +1926,12 @@ class BookmakerRow(bpy.types.Operator) :
         min = 1,
         default = 1,
       )
+    single_object : bpy.props.BoolProperty \
+      (
+        name = "single_object",
+        description = "join all generated books into a single object",
+        default = True,
+      )
     hardcover_weight : bpy.props.FloatProperty \
       (
         name = "hardcover_weight",
@@ -2055,6 +2061,7 @@ class BookmakerRow(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count", text = "Nr Books")
+        the_col.prop(self, "single_object", text = "Single Object")
         the_col.prop(self, "hardcover_weight", text = "Weight for Hardcover")
         the_col.prop(self, "softcover_weight", text = "Weight for Softcover")
         the_col.prop(self, "magazine_weight", text = "Weight for Magazines")
@@ -2129,6 +2136,10 @@ class BookmakerRow(bpy.types.Operator) :
                 prev_rotation_displacement = rotation_displacement
                 prev_width = width
             #end for
+            if self.single_object :
+                bpy.ops.object.transform_apply()
+                bpy.ops.object.join()
+            #end if
             # all done
             status = {"FINISHED"}
         except Failure as why :
@@ -2165,6 +2176,12 @@ class BookmakerStack(bpy.types.Operator) :
         description = "How many books to generate",
         min = 1,
         default = 1,
+      )
+    single_object : bpy.props.BoolProperty \
+      (
+        name = "single_object",
+        description = "join all generated books into a single object",
+        default = True,
       )
     hardcover_weight : bpy.props.FloatProperty \
       (
@@ -2279,6 +2296,7 @@ class BookmakerStack(bpy.types.Operator) :
     def draw(self, context) :
         the_col = self.layout.column(align = True)
         the_col.prop(self, "count", text = "Nr Books")
+        the_col.prop(self, "single_object", text = "Single Object")
         the_col.prop(self, "hardcover_weight", text = "Weight for Hardcover")
         the_col.prop(self, "softcover_weight", text = "Weight for Softcover")
         the_col.prop(self, "magazine_weight", text = "Weight for Magazines")
@@ -2342,6 +2360,10 @@ class BookmakerStack(bpy.types.Operator) :
                 prev_height = height
                 pos += Vector((0, 0, width))
             #end for
+            if self.single_object :
+                bpy.ops.object.transform_apply()
+                bpy.ops.object.join()
+            #end if
             # all done
             status = {"FINISHED"}
         except Failure as why :
