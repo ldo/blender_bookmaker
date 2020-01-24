@@ -1,7 +1,7 @@
 #+
 # Blender add-on to generate a random row or stack of books.
 #
-# Copyright 2019 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
+# Copyright 2019-2020 by Lawrence D'Oliveiro <ldo@geek-central.gen.nz>.
 # Licensed (except meshes) under CC-BY-SA
 # <http://creativecommons.org/licenses/by-sa/4.0/>.
 #-
@@ -1631,10 +1631,13 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
         material_tree = cover_common
         material_input = material_tree.nodes.new("NodeGroupInput")
         material_input.location = (-200, 0)
-        material_input.outputs.new("Colour", "RGBA")
         material_output = material_tree.nodes.new("NodeGroupOutput")
         material_output.location = (400, 0)
-        material_output.inputs.new("Shader", "SHADER")
+        # Note that there is no point calling material_input.outputs.new(),
+        # material_output.inputs.new(), material_tree.inputs.new()
+        # or material_tree.outputs.new()--these calls do nothing. Instead,
+        # all inputs and outputs for the node group are automatically
+        # created as connections are made to them via material_tree.links.new().
         colour_shader = material_tree.nodes.new("ShaderNodeBsdfDiffuse")
         colour_shader.location = (0, 0)
         gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
@@ -1646,8 +1649,6 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
         material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
         mix_shader.inputs[0].default_value = gloss
         material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
-        material_tree.inputs.new("RGBA", "Colour")
-        material_tree.outputs.new("SHADER", "Shader")
         deselect_all(material_tree)
     #end define_cover_common
 
