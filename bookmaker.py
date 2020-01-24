@@ -1863,9 +1863,21 @@ def generate_book(self, geom_random, material_random, context, pos, materials, j
         subtotal += choices[pick][0]
     #end while
     book_mesh = book_meshes[choices[pick][1]]
-    width = max(self.width * 10 ** ((2 * geom_random.random() - 1) * self.width_var / 10), dimensions_min[0])
-    depth = max(self.depth * 10 ** ((2 * geom_random.random() - 1) * self.depth_var / 10), dimensions_min[1])
-    height = max(self.height * 10 ** ((2 * geom_random.random() - 1) * self.height_var / 10), dimensions_min[2])
+    width = max \
+      (
+        self.width * 10 ** ((2 * geom_random.random() - 1) * self.width_var / 10),
+        dimensions_min[0]
+      )
+    depth = max \
+      (
+        self.depth * 10 ** ((2 * geom_random.random() - 1) * self.depth_var / 10),
+        dimensions_min[1]
+      )
+    height = max \
+      (
+        self.height * 10 ** ((2 * geom_random.random() - 1) * self.height_var / 10),
+        dimensions_min[2]
+      )
     vertices = []
     bounds = book_mesh["bounds"]
     for i in range(len(book_mesh["vertices"])) :
