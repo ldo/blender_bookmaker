@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 5, 0),
+        "version" : (1, 5, 1),
         "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -2178,7 +2178,7 @@ class BookmakerRow(bpy.types.Operator) :
 
 class BookmakerStack(bpy.types.Operator) :
     bl_idname = "add_mesh.bookmaker_stack"
-    bl_label = "Bookmaker Row"
+    bl_label = "Bookmaker Stack"
     bl_description = "creates a vertical stack of books"
     bl_context = "objectmode"
     bl_options = {"REGISTER", "UNDO"}
