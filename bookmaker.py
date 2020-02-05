@@ -2118,7 +2118,8 @@ class BookmakerRow(bpy.types.Operator) :
                         self.use_materials_from_active
                       )
                 #end if
-                new_obj, width, depth, height = generate_book(self, geom_random, material_random, context, pos, materials, j)
+                new_obj, width, depth, height = \
+                    generate_book(self, geom_random, material_random, context, pos, materials, j)
                 if prev_rotate == None or geom_random.random() >= self.rotate_clump_var :
                     rotate = (2 * geom_random.random() - 1) * self.rotate_var
                     prev_rotate = rotate
@@ -2348,7 +2349,8 @@ class BookmakerStack(bpy.types.Operator) :
                         self.use_materials_from_active
                       )
                 #end if
-                new_obj, width, depth, height = generate_book(self, geom_random, material_random, context, pos, materials, j)
+                new_obj, width, depth, height = \
+                    generate_book(self, geom_random, material_random, context, pos, materials, j)
                 rotate = (2 * geom_random.random() - 1) * self.rotate_var
                 delta_pos = [0, 0, 0]
                 if prev_depth != None : # <=> prev_height != None
@@ -2401,8 +2403,10 @@ class BookmakerStack(bpy.types.Operator) :
 #end BookmakerStack
 
 def add_invoke_item(self, context) :
-    self.layout.operator(BookmakerRow.bl_idname, text = "Books Row", icon_value = icons["row"].icon_id)
-    self.layout.operator(BookmakerStack.bl_idname, text = "Books Stack", icon_value = icons["stack"].icon_id)
+    self.layout.operator \
+        (BookmakerRow.bl_idname, text = "Books Row", icon_value = icons["row"].icon_id)
+    self.layout.operator \
+        (BookmakerStack.bl_idname, text = "Books Stack", icon_value = icons["stack"].icon_id)
 #end add_invoke_item
 
 _classes_ = \
