@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 5, 1),
+        "version" : (1, 5, 2),
         "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -2339,7 +2339,7 @@ class BookmakerStack(bpy.types.Operator) :
             geom_random = Random(self.geom_ranseed)
             material_random = Random(self.mtrl_ranseed)
             materials = None
-            prev_depth = prev_height = None
+            prev_depth = prev_height = prev_delta_pos = None
             for j in range(self.count) :
                 if materials == None :
                     materials = define_book_materials \
@@ -2353,9 +2353,11 @@ class BookmakerStack(bpy.types.Operator) :
                     generate_book(self, geom_random, material_random, context, pos, materials, j)
                 rotate = (2 * geom_random.random() - 1) * self.rotate_var
                 delta_pos = [0, 0, 0]
-                if prev_depth != None : # <=> prev_height != None
-                    delta_pos[0] = geom_random.random() * (prev_height - height)
-                    delta_pos[1] = geom_random.random() * (prev_depth - depth)
+                if prev_depth != None : # <=> prev_height != None <=> prev_delta_pos != None
+                    delta_pos[0] =  - (prev_height - height) / 2
+                    delta_pos[1] = (prev_depth - depth) / 2
+                    delta_pos[0] = prev_delta_pos[0] + geom_random.random() * delta_pos[0]
+                    delta_pos[1] = prev_delta_pos[1] + geom_random.random() * delta_pos[1]
                 #end if
                 new_obj.matrix_basis = \
                     (
@@ -2373,6 +2375,7 @@ class BookmakerStack(bpy.types.Operator) :
                     )
                 prev_depth = depth
                 prev_height = height
+                prev_delta_pos = delta_pos
                 pos += Vector((0, 0, width))
             #end for
             if self.single_object :
