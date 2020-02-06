@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 5, 2),
+        "version" : (1, 6, 0),
         "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -335,6 +335,7 @@ book_meshes = \
                         [34, 35, 31, 38],
                         [1, 34, 38, 80],
                     ],
+                "smooth_faces" : {16, 22, 23, 30, 31, 32, 33, 34, 36, 49, 50, 51, 60, 67, 123, 124, 125, 126},
 
                 "left_vertices" :
                     {
@@ -990,6 +991,7 @@ book_meshes = \
                         [34, 33, 58, 59],
                         [33, 32, 57, 58],
                     ],
+                "smooth_faces" : {18, 31, 32, 33, 34, 35},
 
                 'back_vertices' :
                     {
@@ -1367,6 +1369,7 @@ book_meshes = \
                         [34, 33, 58, 59],
                         [33, 32, 57, 58],
                     ],
+                "smooth_faces" : {18, 31, 32, 33, 34, 35},
 
                 'back_vertices' :
                     {
@@ -1904,14 +1907,21 @@ def generate_book(self, geom_random, material_random, context, pos, materials, j
     new_mesh.materials.append(materials["books_paper"])
     new_mesh.materials.append(material_random.choice(materials["books_cover"]))
     new_mesh.from_pydata(vertices, [], book_mesh["faces"])
+    smooth_faces = book_mesh.get("smooth_faces")
     for i in range(len(book_mesh["faces"])) :
         p = new_mesh.polygons[i]
+        if smooth_faces != None and i in smooth_faces :
+            p.use_smooth = True
+        #end if
         if i in book_mesh["face_materials"][0] :
             p.material_index = 0
         else :
             p.material_index = 1
         #end if
     #end for
+    if smooth_faces != None :
+        new_mesh.use_auto_smooth = True
+    #end if
     new_obj = bpy.data.objects.new(new_mesh_name, new_mesh)
     new_obj_name = new_obj.name
     new_obj.matrix_basis = Matrix.Translation(pos)
