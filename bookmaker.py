@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 6, 0),
+        "version" : (1, 6, 1),
         "blender" : (2, 80, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -2136,9 +2136,10 @@ class BookmakerRow(bpy.types.Operator) :
                 else :
                     rotate = prev_rotate
                 #end if
-                rotation_displacement = height * math.sin(rotate) - prev_width * (1 - math.cos(rotate))
+                this_rotation_displacement = height * math.sin(rotate)
+                total_rotation_displacement = min(this_rotation_displacement - prev_rotation_displacement, 0) + prev_width * (1 - math.cos(rotate))
                 gap = self.width * (10 ** ((2 * geom_random.random() - 1) * self.gap_var / 10) - 1)
-                x_disp_delta = rotation_displacement - prev_rotation_displacement
+                x_disp_delta = total_rotation_displacement
                 z_disp_delta = max(width * math.sin(rotate), 0)
                 new_obj.matrix_basis = \
                     (
@@ -2157,7 +2158,7 @@ class BookmakerRow(bpy.types.Operator) :
                         Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
                     )
                 pos += Vector((width + gap + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
-                prev_rotation_displacement = rotation_displacement
+                prev_rotation_displacement = this_rotation_displacement
                 prev_width = width
             #end for
             if self.single_object :
