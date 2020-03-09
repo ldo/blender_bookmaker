@@ -21,8 +21,8 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 6, 1),
-        "blender" : (2, 80, 0),
+        "version" : (1, 6, 2),
+        "blender" : (2, 82, 0),
         "location" : "Add > Mesh",
         "description" :
             "generates a row or stack of book objects with randomly-distributed parameters.",
@@ -2114,11 +2114,10 @@ class BookmakerRow(bpy.types.Operator) :
             #end if
             geom_random = Random(self.geom_ranseed)
             material_random = Random(self.mtrl_ranseed)
-            prev_rotation_displacement = 0
             bpy.ops.object.select_all(action = "DESELECT")
             materials = None
             prev_rotate = None
-            prev_width = 0
+            prev_height = None
             for j in range(self.count) :
                 if materials == None :
                     materials = define_book_materials \
@@ -2132,34 +2131,47 @@ class BookmakerRow(bpy.types.Operator) :
                     generate_book(self, geom_random, material_random, context, pos, materials, j)
                 if prev_rotate == None or geom_random.random() >= self.rotate_clump_var :
                     rotate = (2 * geom_random.random() - 1) * self.rotate_var
-                    prev_rotate = rotate
                 else :
                     rotate = prev_rotate
                 #end if
-                this_rotation_displacement = height * math.sin(rotate)
-                total_rotation_displacement = min(this_rotation_displacement - prev_rotation_displacement, 0) + prev_width * (1 - math.cos(rotate))
-                gap = self.width * (10 ** ((2 * geom_random.random() - 1) * self.gap_var / 10) - 1)
-                x_disp_delta = total_rotation_displacement
+                intersect_z = height * math.cos(rotate)
+                if prev_height != None :
+                    intersect_z = min(intersect_z, prev_height * math.cos(prev_rotate))
+                #end if
+                if prev_rotate != None and rotate != prev_rotate :
+                    # avoid adjacent books leaning at different angles from intersecting
+                    # each other. Fixme: won’t avoid the problem with non-adjacent books,
+                    # which can happen if the height and rotation variations are large enough.
+                    # Also can still be a gap between books leaning away from each other.
+                    x_disp_delta = max(intersect_z * (math.tan(prev_rotate) - math.tan(rotate)), 0)
+                else :
+                    x_disp_delta = 0
+                #end if
+                if prev_rotate != None :
+                    if rotate > 0 and prev_rotate > 0 :
+                        x_disp_delta += \
+                            width * math.cos(rotate) * math.sin(rotate) * math.sin(prev_rotate)
+                    elif rotate < 0 and prev_rotate < 0 :
+                        x_disp_delta += \
+                            width * math.cos(prev_rotate) * math.sin(prev_rotate) * math.sin(rotate)
+                    #end if
+                #end if
                 z_disp_delta = max(width * math.sin(rotate), 0)
+                gap = self.width * (10 ** ((2 * geom_random.random() - 1) * self.gap_var / 10) - 1)
                 new_obj.matrix_basis = \
                     (
                         Matrix.Translation
                           (
-                            Vector(((0, - x_disp_delta)[x_disp_delta < 0], 0, z_disp_delta))
-                          )
-                    @
-                        Matrix.Translation
-                          (
-                            Vector((gap, 0, 0))
+                            Vector((x_disp_delta + gap, 0, z_disp_delta))
                           )
                     @
                         new_obj.matrix_basis
                     @
                         Matrix.Rotation(rotate, 4, Vector((0, 1, 0)))
                     )
-                pos += Vector((width + gap + (0, - x_disp_delta)[x_disp_delta < 0], 0, 0))
-                prev_rotation_displacement = this_rotation_displacement
-                prev_width = width
+                pos += Vector((width * math.cos(rotate) + gap + x_disp_delta, 0, 0))
+                prev_rotate = rotate
+                prev_height = height
             #end for
             if self.single_object :
                 bpy.ops.object.transform_apply()
