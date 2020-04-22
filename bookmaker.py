@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 6, 2),
+        "version" : (1, 6, 3),
         "blender" : (2, 82, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -1636,22 +1636,25 @@ def define_book_materials(context, nr_colours, use_materials_from_active) :
         material_input.location = (-200, 0)
         material_output = material_tree.nodes.new("NodeGroupOutput")
         material_output.location = (400, 0)
-        # Note that there is no point calling material_input.outputs.new(),
-        # material_output.inputs.new(), material_tree.inputs.new()
-        # or material_tree.outputs.new()--these calls do nothing. Instead,
-        # all inputs and outputs for the node group are automatically
-        # created as connections are made to them via material_tree.links.new().
+        # Looks like material_input.outputs.new() and
+        # material_output.inputs.new() do nothing. Terminals are
+        # auto-created as connections are made to them.
         colour_shader = material_tree.nodes.new("ShaderNodeBsdfDiffuse")
         colour_shader.location = (0, 0)
         gloss_shader = material_tree.nodes.new("ShaderNodeBsdfGlossy")
         gloss_shader.location = (0, -150)
         mix_shader = material_tree.nodes.new("ShaderNodeMixShader")
         mix_shader.location = (200, 0)
+        material_tree.inputs.new("NodeSocketColor", "Colour")
         material_tree.links.new(material_input.outputs[0], colour_shader.inputs[0])
+        material_input.outputs[0].name = material_tree.inputs[0].name
         material_tree.links.new(colour_shader.outputs[0], mix_shader.inputs[1])
         material_tree.links.new(gloss_shader.outputs[0], mix_shader.inputs[2])
         mix_shader.inputs[0].default_value = gloss
+        material_tree.outputs.new("NodeSocketShader", "Shader")
+          # needed to work around intermittent crash on following line
         material_tree.links.new(mix_shader.outputs[0], material_output.inputs[0])
+        material_output.inputs[0].name = material_tree.outputs[0].name
         deselect_all(material_tree)
     #end define_cover_common
 
