@@ -21,7 +21,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 6, 3),
+        "version" : (1, 6, 4),
         "blender" : (2, 82, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -2364,6 +2364,7 @@ class BookmakerStack(bpy.types.Operator) :
             #end if
             geom_random = Random(self.geom_ranseed)
             material_random = Random(self.mtrl_ranseed)
+            bpy.ops.object.select_all(action = "DESELECT")
             materials = None
             prev_depth = prev_height = prev_delta_pos = None
             for j in range(self.count) :
