@@ -2113,8 +2113,12 @@ class BookmakerRow(bpy.types.Operator) :
             else :
                 pos = context.scene.cursor.location.copy()
                 self.position = pos.copy()
-                self.geom_ranseed = random.randrange((1 << 31) - 1)
-                self.mtrl_ranseed = random.randrange((1 << 31) - 1)
+                maxseed = 1e6
+                  # [0 .. 999999] is enough to be interesting by
+                  # default. Users can always replace seeds with
+                  # anything they like.
+                self.geom_ranseed = random.randrange(maxseed)
+                self.mtrl_ranseed = random.randrange(maxseed)
             #end if
             geom_random = random.Random(self.geom_ranseed)
             material_random = random.Random(self.mtrl_ranseed)
@@ -2362,8 +2366,12 @@ class BookmakerStack(bpy.types.Operator) :
             else :
                 pos = context.scene.cursor.location.copy()
                 self.position = pos.copy()
-                self.geom_ranseed = random.randrange((1 << 31) - 1)
-                self.mtrl_ranseed = random.randrange((1 << 31) - 1)
+                maxseed = 1e6
+                  # [0 .. 999999] is enough to be interesting by
+                  # default. Users can always replace seeds with
+                  # anything they like.
+                self.geom_ranseed = random.randrange(maxseed)
+                self.mtrl_ranseed = random.randrange(maxseed)
             #end if
             geom_random = random.Random(self.geom_ranseed)
             material_random = random.Random(self.mtrl_ranseed)
