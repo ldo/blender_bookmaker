@@ -8,8 +8,7 @@
 
 import sys
 import math
-from random import \
-    Random
+import random
 import colorsys
 import bpy
 import bpy.utils.previews
@@ -21,7 +20,7 @@ bl_info = \
     {
         "name" : "Bookmaker",
         "author" : "Lawrence D'Oliveiro <ldo@geek-central.gen.nz>",
-        "version" : (1, 6, 4),
+        "version" : (1, 7, 0),
         "blender" : (2, 82, 0),
         "location" : "Add > Mesh",
         "description" :
@@ -2114,9 +2113,11 @@ class BookmakerRow(bpy.types.Operator) :
             else :
                 pos = context.scene.cursor.location.copy()
                 self.position = pos.copy()
+                self.geom_ranseed = random.randrange((1 << 31) - 1)
+                self.mtrl_ranseed = random.randrange((1 << 31) - 1)
             #end if
-            geom_random = Random(self.geom_ranseed)
-            material_random = Random(self.mtrl_ranseed)
+            geom_random = random.Random(self.geom_ranseed)
+            material_random = random.Random(self.mtrl_ranseed)
             bpy.ops.object.select_all(action = "DESELECT")
             materials = None
             prev_rotate = None
@@ -2361,9 +2362,11 @@ class BookmakerStack(bpy.types.Operator) :
             else :
                 pos = context.scene.cursor.location.copy()
                 self.position = pos.copy()
+                self.geom_ranseed = random.randrange((1 << 31) - 1)
+                self.mtrl_ranseed = random.randrange((1 << 31) - 1)
             #end if
-            geom_random = Random(self.geom_ranseed)
-            material_random = Random(self.mtrl_ranseed)
+            geom_random = random.Random(self.geom_ranseed)
+            material_random = random.Random(self.mtrl_ranseed)
             bpy.ops.object.select_all(action = "DESELECT")
             materials = None
             prev_depth = prev_height = prev_delta_pos = None
